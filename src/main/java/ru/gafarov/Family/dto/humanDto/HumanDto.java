@@ -3,6 +3,7 @@ package ru.gafarov.Family.dto.humanDto;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Calendar;
 import java.util.Date;
 
 @Data
@@ -17,9 +18,9 @@ public class HumanDto implements Comparable<HumanDto>{
 
     private String surname;
 
-    private Date birthdate;
+    private String birthdate;
 
-    private Date deathdate;
+    private String deathdate;
 
     private String birthplace;
 

@@ -24,11 +24,17 @@ public class Surname extends BaseEntity {
     @Column(name = "sur_alias_2")
     private String surnameAlias2;
 
-    @Override
-    public String toString() {
+    @Column(name = "declension")
+    private char declension;
+
+    public String toString(char gender) {
         if(surname==null){
             return null;
         }
-        return surname;
+        if(declension=='Y'&& gender=='W'){
+            return surname+"a";
+        } else {
+            return surname;
+        }
     }
 }

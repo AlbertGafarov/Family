@@ -3,6 +3,7 @@ package ru.gafarov.Family.dto.humanDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -18,9 +19,9 @@ public class HumanFullDto {
 
     private String surname;
 
-    private Date birthdate;
+    private String birthdate;
 
-    private Date deathdate;
+    private String deathdate;
 
     private String birthplace;
 

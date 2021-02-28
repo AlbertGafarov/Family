@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,10 +24,10 @@ public class Human extends BaseEntity {
     private Surname surname;
 
     @Column(name = "birthdate")
-    private Date birthdate;
+    private Calendar birthdate;
 
     @Column(name = "deathdate")
-    private Date deathdate;
+    private Calendar deathdate;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "birthplace_id")
@@ -36,7 +36,10 @@ public class Human extends BaseEntity {
     @Column(name = "gender")
     private char gender;
 
-    @ManyToMany(mappedBy = "children", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "humans_parents",
+            joinColumns = {@JoinColumn(name = "human_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "parent_id", referencedColumnName = "id")})
     private List<Human> parents;
 
     @ManyToMany(fetch = FetchType.LAZY)

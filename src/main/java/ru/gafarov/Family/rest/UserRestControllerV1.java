@@ -40,7 +40,7 @@ public class UserRestControllerV1 {
         return new ResponseEntity<>(newUserDto, HttpStatus.OK);
     }
 
-    @GetMapping("/search_people/{partOfName}")
+    @GetMapping("/search_user/{partOfName}")
     public ResponseEntity<List<UserDto>> searchPeople(@PathVariable String partOfName
             , @RequestHeader(value = "Authorization") String bearerToken) {
         if (partOfName.length() < 3) {
