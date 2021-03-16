@@ -275,5 +275,29 @@
         <addUniqueConstraint tableName="humans_parents"
                              columnNames="human_id, parent_id"/>
     </changeSet>
-
+    <changeSet id="1.0.19" author="albert.gafarov">
+        <createTable tableName="photos">
+            <column name="id" type="serial" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(64)" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="varchar(64)" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_photo" type="timestamp" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
