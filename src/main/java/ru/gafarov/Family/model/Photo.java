@@ -6,8 +6,7 @@ import lombok.EqualsAndHashCode;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.io.File;
-import java.util.Calendar;
+import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -22,6 +21,6 @@ public class Photo extends BaseEntity {
     private String path;
 
     @Column(name = "date_photo")
-    private Calendar photoDate;
+    private Date photoDate;
 
 }

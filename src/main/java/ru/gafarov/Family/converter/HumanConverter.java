@@ -82,6 +82,9 @@ public class HumanConverter {
                 .stream()
                 .map(HumanConverter::toHumanShortDto)
                 .collect(Collectors.toList()));
+        if(human.getBirthplace()!=null) {
+            humanFullDto.setBirthplace(human.getBirthplace().toString());
+        }
 
         return humanFullDto;
     }
@@ -93,7 +96,7 @@ public class HumanConverter {
         human.setDeathdate(humanCreateDto.getDeathdate());
         human.setPatronim(humanCreateDto.getPatronim());
         human.setGender(humanCreateDto.getGender());
-        human.setSurname(surnameService.getSurname((long)humanCreateDto.getSurname_id()));
+        human.setSurname(surnameService.getSurname(humanCreateDto.getSurname_id()));
 
         List<Human> parents =  Arrays.stream(humanCreateDto.getParents_id())
                 .mapToObj(i-> humanService.getHuman((long) i))
@@ -171,7 +174,6 @@ public class HumanConverter {
         if(humanCreateDto.getBirthplace_id()!=null) {
             human.setBirthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()));
         }
-
 
         return human;
     }

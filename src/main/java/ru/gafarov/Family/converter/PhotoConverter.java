@@ -10,6 +10,7 @@ public class PhotoConverter {
         PhotoDto photoDto = new PhotoDto();
         photoDto.setId(photo.getId());
         photoDto.setName(photo.getName());
+        photoDto.setPhotoDate(photo.getPhotoDate());
         return photoDto;
     }
 }
