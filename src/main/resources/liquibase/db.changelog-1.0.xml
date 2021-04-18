@@ -300,4 +300,38 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="1.0.20" author="albert.gafarov">
+        <createTable tableName="photo_humans">
+            <column name="photo_id" type="integer"/>
+            <column name="human_id" type="integer"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.21" author="albert.gafarov">
+    <addForeignKeyConstraint baseTableName="photo_humans"
+                             baseColumnNames="photo_id"
+                             constraintName="fk_photos_photo_humans"
+                             referencedTableName="photos"
+                             referencedColumnNames="id"
+                             onUpdate="RESTRICT"/>
+    </changeSet>
+    <changeSet id="1.0.22" author="albert.gafarov">
+        <addForeignKeyConstraint baseTableName="photo_humans"
+                                 baseColumnNames="human_id"
+                                 constraintName="fk_humans_photo_humans"
+                                 referencedTableName="humans"
+                                 referencedColumnNames="id"
+                                 onUpdate="RESTRICT"/>
+    </changeSet>
+    <changeSet id="1.0.23" author="albert.gafarov">
+        <addUniqueConstraint constraintName="uk_photo_humans"
+                             tableName="photo_humans"
+                             columnNames="photo_id, human_id"/>
+    </changeSet>
+    <changeSet id="1.0.24" author="albert.gafarov">
+        <addUniqueConstraint constraintName="uk_user_roles"
+                             tableName="user_roles"
+                             columnNames="user_id, role_id"/>
+    </changeSet>
+
 </databaseChangeLog>

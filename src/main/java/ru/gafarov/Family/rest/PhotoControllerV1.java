@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.gafarov.Family.converter.PhotoConverter;
+import ru.gafarov.Family.dto.photoDto.ChangePhotoDto;
+import ru.gafarov.Family.dto.photoDto.FullPhotoDto;
 import ru.gafarov.Family.dto.photoDto.PhotoDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
+import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.exception_handling.PhotoFileException;
 import ru.gafarov.Family.model.Photo;
 import ru.gafarov.Family.service.PhotoService;
@@ -21,6 +23,7 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/photos")
@@ -30,7 +33,7 @@ public class PhotoControllerV1 {
     PhotoService photoService;
 
 
-    @PostMapping("") //Добавить фото
+    @PostMapping("") //Загрузить файл фото
     public ResponseEntity<PhotoDto> addPhoto(@RequestParam("file") MultipartFile file, @RequestParam("date") String photoDateStr) throws ParseException {
         if (file==null){
             throw new PhotoFileException("There is no file");
@@ -69,10 +72,23 @@ public class PhotoControllerV1 {
         }
     }
 
-    @GetMapping("/{id}/info") // Получение информации о фото
-    public ResponseEntity<PhotoDto> getPhoto(@PathVariable(name = "id") Long id){
-        PhotoDto photoDto = PhotoConverter.toPhotoDto(photoService.getPhoto(id));
-        return new ResponseEntity<>(photoDto, HttpStatus.OK);
+    @GetMapping("/{id}/info") // Получение полной информации о фото
+    public ResponseEntity<FullPhotoDto> getPhoto(@PathVariable(name = "id") Long id){
+        FullPhotoDto fullPhotoDto = photoService.getFullPhotoDto(id);
+        return new ResponseEntity<>(fullPhotoDto, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}/info") //Изменить информацию о фото, добавить людей, изображенных на фото
+    public ResponseEntity<FullPhotoDto> changePhotoInfo(@RequestBody ChangePhotoDto changePhotoDto){
+        FullPhotoDto fullPhotoDto = photoService.changePhoto(changePhotoDto);
+
+        return new ResponseEntity<>(fullPhotoDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/humans/{id}") // Получить список фото, на которых изображен человек
+    public ResponseEntity<List<PhotoDto>> getPhotoByHumanId(@PathVariable Long id){
+        List<PhotoDto> photoDtoList = photoService.getPhotoByHumanId(id);
+        return new ResponseEntity<>(photoDtoList, HttpStatus.OK);
     }
 
     @ExceptionHandler
@@ -80,6 +96,12 @@ public class PhotoControllerV1 {
             MessageIncorrectData message = new MessageIncorrectData();
             message.setInfo(exception.getMessage());
             return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler
+    public ResponseEntity<MessageIncorrectData>handleException(NoSuchHumanException exception){
+        MessageIncorrectData message = new MessageIncorrectData();
+        message.setInfo(exception.getMessage());
+        return new ResponseEntity<>(message, HttpStatus.CONFLICT);
     }
 
 }

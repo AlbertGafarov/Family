@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.gafarov.Family.converter.PhotoConverter;
+import ru.gafarov.Family.dto.photoDto.ChangePhotoDto;
+import ru.gafarov.Family.dto.photoDto.FullPhotoDto;
 import ru.gafarov.Family.dto.photoDto.PhotoDto;
+import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.exception_handling.PhotoFileException;
 import ru.gafarov.Family.model.Photo;
 import ru.gafarov.Family.model.Status;
@@ -31,23 +35,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PhotoServiceImpl implements PhotoService {
 
-    @Value(value = "${path.root}")
-    private String ROOT;
+    private final String ROOT;
 
-    @Value(value = "${path.photo}")
-    private String PHOTOPATH;
+    private final String PHOTOPATH;
+
+    private final PhotoRepository photoRepository;
+
+    private final PhotoConverter photoConverter;
 
     @Autowired
-    PhotoRepository photoRepository;
+    public PhotoServiceImpl(@Value(value = "${path.root}") String ROOT
+            , @Value(value = "${path.photo}") String PHOTOPATH
+            , PhotoRepository photoRepository
+            , PhotoConverter photoConverter) {
+        this.ROOT = ROOT;
+        this.PHOTOPATH = PHOTOPATH;
+        this.photoRepository = photoRepository;
+        this.photoConverter = photoConverter;
+    }
 
     @Override
-    public PhotoDto save(MultipartFile file, Date photoDate) throws IOException {
+    public PhotoDto save(MultipartFile file, Date photoDate) throws IOException { // Добавление инфо о фото в базу данных + сохранение файл в файловом хранилище
 
         Photo photo = new Photo();
         String imageResolution; // разрешение изображения
@@ -72,7 +87,7 @@ public class PhotoServiceImpl implements PhotoService {
         String exp = ""; // расширение для файла
         if (fileName != null && fileName.contains(".")) {
             exp = fileName.substring(fileName.lastIndexOf("."));
-            if (!(exp.toUpperCase(Locale.ENGLISH).equals(".JPG") || exp.toUpperCase(Locale.ENGLISH).equals(".JPEG"))){
+            if (!(exp.equalsIgnoreCase(".JPG") || exp.equalsIgnoreCase(".JPEG"))){
                 throw new IIOException("Not a JPEG file");
             }
         }
@@ -121,7 +136,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public void saveFile(MultipartFile file, String newFileName) throws IOException {
+    public void saveFile(MultipartFile file, String newFileName) throws IOException { // Сохранить файл в хранилище
         try (
                 BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(newFileName))
                 ){
@@ -131,7 +146,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public BufferedImage readFromFile(String fileName) throws IOException{
+    public BufferedImage readFromFile(String fileName) throws IOException{ // Считать изображение из файла
         ImageReader r = new JPEGImageReader(new JPEGImageReaderSpi());
         r.setInput(new FileImageInputStream(new File(fileName)));
         BufferedImage bi = r.read(0, new ImageReadParam());
@@ -140,7 +155,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public Photo getPhoto(Long id) {
+    public Photo getPhoto(Long id) { //Получить фото по id
         Optional<Photo> optional = photoRepository.findById(id);
         if(optional.isEmpty()){
             throw new PhotoFileException("Фото с id " + id + " не найдено");
@@ -149,8 +164,28 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public File getPhotoFile(Long id) {
+    public File getPhotoFile(Long id) { // Получить файл
         Photo photo = getPhoto(id);
         return new File(ROOT + photo.getPath() + id + ".jpg");
+    }
+
+    @Override
+    public FullPhotoDto changePhoto(ChangePhotoDto changePhotoDto) throws NoSuchHumanException { //Изменить информацию о фото
+        Photo photo = photoConverter.toPhoto(changePhotoDto);
+        Photo savedPhoto = photoRepository.save(photo);
+        return photoConverter.toFullPhotoDto(savedPhoto);
+    }
+
+    @Override
+    public FullPhotoDto getFullPhotoDto(Long id) { // Получить полную DTO фото по id
+        return photoConverter.toFullPhotoDto(getPhoto(id));
+    }
+
+    @Override
+    public List<PhotoDto> getPhotoByHumanId(Long id) { //получить список фото для человека по id
+        List<Photo> photoList = photoRepository.getPhotoByHumanId(id);
+        return photoList.stream()
+                .map(photoConverter::toPhotoDto)
+                .collect(Collectors.toList());
     }
 }

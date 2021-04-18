@@ -89,7 +89,7 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public HumanFullDto changeHumanInfo(HumanCreateDto humanCreateDto) {
+    public HumanFullDto changeHumanInfo(HumanCreateDto humanCreateDto) { //Изменить информацию о человеке
 
         Human human = humanConverter.changeHumanInfo(humanCreateDto);
         human.setUpdated(new Date());

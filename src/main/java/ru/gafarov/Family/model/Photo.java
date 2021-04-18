@@ -3,10 +3,9 @@ package ru.gafarov.Family.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -22,5 +21,11 @@ public class Photo extends BaseEntity {
 
     @Column(name = "date_photo")
     private Date photoDate;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "photo_humans",
+            joinColumns = {@JoinColumn(name = "photo_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "human_id", referencedColumnName = "id")})
+    private List<Human> humans;
 
 }

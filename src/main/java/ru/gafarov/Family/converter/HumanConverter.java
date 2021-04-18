@@ -29,7 +29,7 @@ public class HumanConverter {
     @Autowired
     SurnameService surnameService;
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+    public static final DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public static HumanDto toHumanDto(Human human){
         HumanDto humanDto = new HumanDto();
