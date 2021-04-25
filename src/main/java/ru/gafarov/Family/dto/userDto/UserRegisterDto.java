@@ -12,9 +12,30 @@ public class UserRegisterDto {
     @NonNull
     private String username;
     @NonNull
-    private long phone;
-    @NonNull
     private String email;
+    @NonNull
+    private Long phone;
+    @NonNull
     private String password;
 
+    public UserRegisterDto(@NonNull String username, @NonNull String email, @NonNull Long phone, @NonNull String password) {
+        this.username = username;
+        this.email = email;
+        this.phone = phone;
+        this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "UserRegisterDto{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", phone=" + phone +
+                ", password='" + password + '\'' +
+                '}';
+    }
+
+    public UserRegisterDto() {
+    }
 }

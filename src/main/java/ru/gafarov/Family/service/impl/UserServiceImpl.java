@@ -96,7 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
         userRepository.deleteById(id);
         log.info("IN delete - user with id: {} successfully deleted",id);
 
@@ -138,5 +138,10 @@ public class UserServiceImpl implements UserService {
         String token = bearerToken.substring(7);
         Long myId = getMyId(token);
         return findById(myId);
+    }
+
+    @Override
+    public void delete(User user) {
+        deleteById(user.getId());
     }
 }
