@@ -8,13 +8,14 @@ import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
-import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.UserService;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -63,6 +64,16 @@ public class UserRestControllerV1 {
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(listOfPeopleDto, HttpStatus.OK);
+    }
+
+    @DeleteMapping("") // Удаление самого себя
+    public ResponseEntity<Map<String,String>> deleteUser(@RequestHeader(value = "Authorization") String bearerToken){
+        User user = userService.findMe(bearerToken);
+        userService.delete(user);
+        Map<String,String> map = new HashMap<>();
+        map.put("message","User successfully deleted");
+        return new ResponseEntity<>(map, HttpStatus.OK);
+
     }
 
     @ExceptionHandler

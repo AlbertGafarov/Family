@@ -34,7 +34,9 @@ public class PhotoControllerV1 {
 
 
     @PostMapping("") //Загрузить файл фото
-    public ResponseEntity<PhotoDto> addPhoto(@RequestParam("file") MultipartFile file, @RequestParam("date") String photoDateStr) throws ParseException {
+    public ResponseEntity<PhotoDto> addPhoto(@RequestParam("file") MultipartFile file
+            , @RequestParam("date") String photoDateStr
+            , @RequestHeader(value = "Authorization") String bearerToken) throws ParseException {
         if (file==null){
             throw new PhotoFileException("There is no file");
         }
@@ -54,7 +56,8 @@ public class PhotoControllerV1 {
     }
 
     @GetMapping("/{id}")     //Получить файл фото
-    public void getPhotoFile(@PathVariable(name = "id") Long id, HttpServletResponse response){
+    public void getPhotoFile(@PathVariable(name = "id") Long id, HttpServletResponse response
+            , @RequestHeader(value = "Authorization") String bearerToken){
         Photo photo = photoService.getPhoto(id);
         File photoFile = photoService.getPhotoFile(id);
         Path path = photoFile.toPath();
@@ -73,20 +76,23 @@ public class PhotoControllerV1 {
     }
 
     @GetMapping("/{id}/info") // Получение полной информации о фото
-    public ResponseEntity<FullPhotoDto> getPhoto(@PathVariable(name = "id") Long id){
+    public ResponseEntity<FullPhotoDto> getPhoto(@PathVariable(name = "id") Long id
+            , @RequestHeader(value = "Authorization") String bearerToken){
         FullPhotoDto fullPhotoDto = photoService.getFullPhotoDto(id);
         return new ResponseEntity<>(fullPhotoDto, HttpStatus.OK);
     }
 
     @PutMapping("/{id}/info") //Изменить информацию о фото, добавить людей, изображенных на фото
-    public ResponseEntity<FullPhotoDto> changePhotoInfo(@RequestBody ChangePhotoDto changePhotoDto){
+    public ResponseEntity<FullPhotoDto> changePhotoInfo(@RequestBody ChangePhotoDto changePhotoDto
+            , @RequestHeader(value = "Authorization") String bearerToken){
         FullPhotoDto fullPhotoDto = photoService.changePhoto(changePhotoDto);
 
         return new ResponseEntity<>(fullPhotoDto, HttpStatus.OK);
     }
 
     @GetMapping("/humans/{id}") // Получить список фото, на которых изображен человек
-    public ResponseEntity<List<PhotoDto>> getPhotoByHumanId(@PathVariable Long id){
+    public ResponseEntity<List<PhotoDto>> getPhotoByHumanId(@PathVariable Long id
+            , @RequestHeader(value = "Authorization") String bearerToken){
         List<PhotoDto> photoDtoList = photoService.getPhotoByHumanId(id);
         return new ResponseEntity<>(photoDtoList, HttpStatus.OK);
     }

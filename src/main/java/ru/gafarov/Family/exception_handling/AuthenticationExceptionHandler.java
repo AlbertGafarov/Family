@@ -18,10 +18,10 @@ public class AuthenticationExceptionHandler extends OncePerRequestFilter {
 
         } catch (JwtAuthentificationException e) {
             setErrorResponse(HttpStatus.UNAUTHORIZED, response, e);
-            //e.printStackTrace();
+            e.printStackTrace();
         } catch (RuntimeException e) {
             e.printStackTrace();
-            setErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, response, e);
+            //setErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, response, e);
         }
     }
 
@@ -29,16 +29,16 @@ public class AuthenticationExceptionHandler extends OncePerRequestFilter {
         response.setStatus(status.value());
         response.setContentType("application/json");
         // A class used for errors
-        ApiError apiError = new ApiError(status, ex);
-        try {
-            String json = apiError.convertToJson();
-            //System.out.println(json);
-            response.getWriter().write(json);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+        //ApiError apiError = new ApiError(status, ex);
+//        try {
+//           // String json = apiError.convertToJson();
+//            //System.out.println(json);
+//           // response.getWriter().write(json);
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        }
+   }
 
-    public AuthenticationExceptionHandler() {
-    }
+//    public AuthenticationExceptionHandler() {
+//    }
 }

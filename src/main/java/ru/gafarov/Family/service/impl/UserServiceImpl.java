@@ -8,6 +8,7 @@ import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
+import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
 import ru.gafarov.Family.model.Status;
 import ru.gafarov.Family.model.User;
@@ -64,7 +65,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto register(UserRegisterDto userRegisterDto) {
+    public UserDto register(UserRegisterDto userRegisterDto) throws RegisterException {
+
+
         User user = UserConverter.toUser(userRegisterDto);
         User newUser = register(user);
         return UserConverter.toUserDto(newUser);
@@ -96,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
         userRepository.deleteById(id);
         log.info("IN delete - user with id: {} successfully deleted",id);
 
@@ -138,5 +141,10 @@ public class UserServiceImpl implements UserService {
         String token = bearerToken.substring(7);
         Long myId = getMyId(token);
         return findById(myId);
+    }
+
+    @Override
+    public void delete(User user) {
+        deleteById(user.getId());
     }
 }

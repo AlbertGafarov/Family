@@ -12,16 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gafarov.Family.dto.userDto.AuthenticationRequestDto;
+import ru.gafarov.Family.dto.userDto.UserTokenDto;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.security.jwt.JwtTokenProvider;
 import ru.gafarov.Family.service.UserService;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping(value = "/api/v1/auth/")
-public class AuthenticationRestControllerV1 {
+public class AuthenticationRestControllerV1 { // Контроллер для аутентификации
 
     private final AuthenticationManager authenticationManager;
 
@@ -36,8 +34,8 @@ public class AuthenticationRestControllerV1 {
         this.userService = userService;
     }
 
-    @PostMapping("login")
-    public ResponseEntity<Map<Object,Object>> login(@RequestBody AuthenticationRequestDto requestDto){
+    @PostMapping("login") //метод для аутентификации
+    public ResponseEntity<UserTokenDto> login(@RequestBody AuthenticationRequestDto requestDto){
 
         try {
             String username = requestDto.getUsername();
@@ -48,11 +46,9 @@ public class AuthenticationRestControllerV1 {
             }
             String token = jwtTokenProvider.createToken(username, user.getRoles());
 
-            Map<Object, Object> response = new HashMap<>();
-            response.put("username", username);
-            response.put("token", token);
+            UserTokenDto userTokenDto = new UserTokenDto(username, token);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(userTokenDto);
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid username or password");
         }
