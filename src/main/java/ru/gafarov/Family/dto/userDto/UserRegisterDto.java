@@ -4,18 +4,28 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NonNull;
 
+import javax.validation.constraints.*;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class UserRegisterDto {
 
     private Long id;
-    @NonNull
+
+    @NotBlank(message = "username must be not empty")
+    @Size(min = 2, message = "username must be more one symbol")
     private String username;
-    @NonNull
+
+    @Email
+    @NotBlank(message = "email must be not empty")
     private String email;
-    @NonNull
+
+    @Min(79000000000L)
+    @Max(79999999999L)
     private Long phone;
-    @NonNull
+
+    @NotBlank(message = "password must be not empty")
+    @Size(min = 3, message = "password must be more two symbol")
     private String password;
 
     public UserRegisterDto(@NonNull String username, @NonNull String email, @NonNull Long phone, @NonNull String password) {
@@ -36,6 +46,4 @@ public class UserRegisterDto {
                 '}';
     }
 
-    public UserRegisterDto() {
-    }
 }
