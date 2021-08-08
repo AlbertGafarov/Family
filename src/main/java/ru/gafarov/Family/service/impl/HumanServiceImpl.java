@@ -2,6 +2,7 @@ package ru.gafarov.Family.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.HumanConverter;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
@@ -96,5 +97,10 @@ public class HumanServiceImpl implements HumanService {
         Human updatedHuman = humanRepository.save(human);
 
         return HumanConverter.toHumanFullDto(updatedHuman);
+    }
+
+    @Override
+    public void deleteById(Long id) throws EmptyResultDataAccessException {
+        humanRepository.deleteById(id);
     }
 }

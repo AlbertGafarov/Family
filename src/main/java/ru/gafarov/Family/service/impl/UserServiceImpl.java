@@ -2,10 +2,12 @@ package ru.gafarov.Family.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserDto;
+import ru.gafarov.Family.dto.userDto.UserFullDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
@@ -18,9 +20,8 @@ import ru.gafarov.Family.security.jwt.JwtTokenProvider;
 import ru.gafarov.Family.service.Transcript;
 import ru.gafarov.Family.service.UserService;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -83,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUsername(String username) {
         User result = userRepository.findByUsername(username);
-        log.info("IN findByUsername - user: {} found by username: {}", result, username);
+        log.info("IN findByUsername - user: [{}] found by username: {}", result, username);
         return result;
     }
 
@@ -99,7 +100,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id) throws EmptyResultDataAccessException {
         userRepository.deleteById(id);
         log.info("IN delete - user with id: {} successfully deleted",id);
 
@@ -124,6 +125,29 @@ public class UserServiceImpl implements UserService {
         newMe.setPassword(me.getPassword());
         userRepository.save(newMe);
         return UserConverter.toUserDto(newMe);
+    }
+
+    @Override
+    public UserFullDto changeUserInfo(UserRegisterDto userRegisterDto) {
+        User updatedUser = UserConverter.toUser(userRegisterDto);
+
+        User currentUser = userRepository.findById(userRegisterDto.getId()).orElse(null);
+        if(currentUser==null){
+            throw new NoSuchUserException("user not found");
+        }
+        updatedUser.setUpdated(new Date());
+        if(userRegisterDto.getRoles()!=null) {
+            List<Role> roleList = Arrays.stream(userRegisterDto.getRoles())
+                    .map(a -> roleRepository.findByName(a.toUpperCase(Locale.ROOT)))
+                    .collect(Collectors.toList());
+            updatedUser.setRoles(roleList);
+        }
+        updatedUser.setCreated(currentUser.getCreated());
+        updatedUser.setStatus(currentUser.getStatus());
+        updatedUser.setPassword(currentUser.getPassword());
+        userRepository.save(updatedUser);
+
+        return UserConverter.toFullUserDto(updatedUser);
     }
 
     @Override

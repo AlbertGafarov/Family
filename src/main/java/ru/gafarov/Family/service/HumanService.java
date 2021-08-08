@@ -23,4 +23,6 @@ public interface HumanService {
     List<Human> searchHuman(String partOfName);
 
     HumanFullDto changeHumanInfo(HumanCreateDto humanCreateDto);
+
+    void deleteById(Long id);
 }

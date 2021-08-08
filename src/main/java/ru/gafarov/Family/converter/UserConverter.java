@@ -1,8 +1,10 @@
 package ru.gafarov.Family.converter;
 
 import ru.gafarov.Family.dto.userDto.UserDto;
+import ru.gafarov.Family.dto.userDto.UserFullDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.RegisterException;
+import ru.gafarov.Family.model.Role;
 import ru.gafarov.Family.model.User;
 
 public class UserConverter {
@@ -31,8 +33,8 @@ public class UserConverter {
         } catch (NullPointerException e){
             throw new RegisterException("password is required");
         }
-        return user;
-    }
+        return user;    }
+
 
     public static UserDto toUserDto(User user) {
 
@@ -43,5 +45,16 @@ public class UserConverter {
         userDto.setEmail(user.getEmail());
         return userDto;
 
+    }
+
+    public static UserFullDto toFullUserDto(User updatedUser) {
+        return UserFullDto.builder()
+                .id(updatedUser.getId())
+                .email(updatedUser.getEmail())
+                .username(updatedUser.getUsername())
+                .phone(updatedUser.getPhone())
+                .roles(updatedUser.getRoles().stream()
+                        .map(Role::getName).toArray(String[]::new)
+                ).build();
     }
 }

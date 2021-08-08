@@ -5,8 +5,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
-import com.sun.imageio.plugins.jpeg.JPEGImageReader;
-import com.sun.imageio.plugins.jpeg.JPEGImageReaderSpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,9 +21,7 @@ import ru.gafarov.Family.repository.PhotoRepository;
 import ru.gafarov.Family.service.PhotoService;
 
 import javax.imageio.IIOException;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -147,11 +143,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Override
     public BufferedImage readFromFile(String fileName) throws IOException{ // Считать изображение из файла
-        ImageReader r = new JPEGImageReader(new JPEGImageReaderSpi());
-        r.setInput(new FileImageInputStream(new File(fileName)));
-        BufferedImage bi = r.read(0, new ImageReadParam());
-        ((FileImageInputStream) r.getInput()).close();
-        return bi;
+        return ImageIO.read(new File(fileName));
     }
 
     @Override

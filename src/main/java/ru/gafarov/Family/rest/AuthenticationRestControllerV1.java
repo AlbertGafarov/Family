@@ -1,18 +1,17 @@
 package ru.gafarov.Family.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.dto.userDto.AuthenticationRequestDto;
 import ru.gafarov.Family.dto.userDto.UserTokenDto;
+import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.security.jwt.JwtTokenProvider;
 import ru.gafarov.Family.service.UserService;
@@ -52,5 +51,12 @@ public class AuthenticationRestControllerV1 { // Контроллер для а�
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid username or password");
         }
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<MessageIncorrectData> handleException(UsernameNotFoundException exception){
+        MessageIncorrectData data = new MessageIncorrectData();
+        data.setInfo(exception.getMessage());
+        return new ResponseEntity<>(data, HttpStatus.UNAUTHORIZED);
     }
 }

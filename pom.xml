@@ -14,7 +14,7 @@
 	<name>Family</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>14</java.version>
 		<aspectj.version>1.8.10</aspectj.version>
 	</properties>
 	<dependencies>

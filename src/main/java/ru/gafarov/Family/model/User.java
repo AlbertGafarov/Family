@@ -1,6 +1,7 @@
 package ru.gafarov.Family.model;
 
 import com.sun.istack.NotNull;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

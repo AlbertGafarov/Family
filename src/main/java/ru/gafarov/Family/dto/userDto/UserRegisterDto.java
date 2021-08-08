@@ -28,6 +28,8 @@ public class UserRegisterDto {
     @Size(min = 3, message = "password must be more two symbol")
     private String password;
 
+    String[] roles;
+
     public UserRegisterDto(@NonNull String username, @NonNull String email, @NonNull Long phone, @NonNull String password) {
         this.username = username;
         this.email = email;

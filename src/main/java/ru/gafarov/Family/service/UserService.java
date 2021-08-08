@@ -1,6 +1,7 @@
 package ru.gafarov.Family.service;
 
 import ru.gafarov.Family.dto.userDto.UserDto;
+import ru.gafarov.Family.dto.userDto.UserFullDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.model.User;
 
@@ -19,4 +20,6 @@ public interface UserService {
     User findMe(String bearerToken);
 
     void delete(User user);
+
+    UserFullDto changeUserInfo(UserRegisterDto userRegisterDto);
 }
