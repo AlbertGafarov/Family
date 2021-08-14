@@ -2,7 +2,6 @@ package ru.gafarov.Family.dto.userDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import lombok.NonNull;
 
 import javax.validation.constraints.*;
 
@@ -22,6 +21,7 @@ public class UserRegisterDto {
 
     @Min(79000000000L)
     @Max(79999999999L)
+    @NotNull(message = "phone is required")
     private Long phone;
 
     @NotBlank(message = "password must be not empty")
@@ -30,7 +30,7 @@ public class UserRegisterDto {
 
     String[] roles;
 
-    public UserRegisterDto(@NonNull String username, @NonNull String email, @NonNull Long phone, @NonNull String password) {
+    public UserRegisterDto(String username, String email, Long phone, String password) {
         this.username = username;
         this.email = email;
         this.phone = phone;

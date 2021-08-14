@@ -6,9 +6,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.UserConverter;
-import ru.gafarov.Family.dto.userDto.UserDto;
-import ru.gafarov.Family.dto.userDto.UserFullDto;
-import ru.gafarov.Family.dto.userDto.UserRegisterDto;
+import ru.gafarov.Family.dto.userDto.*;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
@@ -51,9 +49,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
-
         Role roleUser = roleRepository.findByName("ROLE_USER");
-        List<Role> userRoles= new ArrayList<>();
+        List<Role> userRoles = new ArrayList<>();
         userRoles.add(roleUser);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(userRoles);
@@ -91,9 +88,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(Long id) {
         User result = userRepository.findById(id).orElse(null);
-        if (result == null){
+        if (result == null) {
             log.warn("IN findById - no user found by id: {}", id);
-            throw new NoSuchUserException("There is no user with id "+ id);
+            throw new NoSuchUserException("There is no user with id " + id);
         }
         log.info("IN findById - user: {} found by id: {}", result.getUsername(), id);
         return result;
@@ -102,29 +99,28 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(Long id) throws EmptyResultDataAccessException {
         userRepository.deleteById(id);
-        log.info("IN delete - user with id: {} successfully deleted",id);
+        log.info("IN delete - user with id: {} successfully deleted", id);
 
     }
 
     @Override
     public Long getMyId(String token) {
         String myName = jwtTokenProvider.getUserName(token);
-        User me =  findByUsername(myName);
+        User me = findByUsername(myName);
         log.info("IN getMyId user: {} found", me);
         return me.getId();
     }
 
     @Override
-    public UserDto changeUserInfo(User me, UserRegisterDto userRegisterDto) {
-        User newMe = UserConverter.toUser(userRegisterDto);
-        newMe.setId(me.getId());
-        newMe.setUpdated(new Date());
-        newMe.setRoles(me.getRoles());
-        newMe.setCreated(me.getCreated());
-        newMe.setStatus(me.getStatus());
-        newMe.setPassword(me.getPassword());
-        userRepository.save(newMe);
-        return UserConverter.toUserDto(newMe);
+    public UserDto changeUserInfo(User me, UserChangeInfoDto userChangeInfoDto) {
+        userChangeInfoDto.setId(me.getId());
+        UserMaxDto userMaxDto = changeUserInfo(userChangeInfoDto);
+        return UserDto.builder()
+                .id(userMaxDto.getId())
+                .username(userMaxDto.getUsername())
+                .phone(userMaxDto.getPhone())
+                .email(userMaxDto.getEmail())
+                .build();
     }
 
     @Override
@@ -132,11 +128,11 @@ public class UserServiceImpl implements UserService {
         User updatedUser = UserConverter.toUser(userRegisterDto);
 
         User currentUser = userRepository.findById(userRegisterDto.getId()).orElse(null);
-        if(currentUser==null){
+        if (currentUser == null) {
             throw new NoSuchUserException("user not found");
         }
         updatedUser.setUpdated(new Date());
-        if(userRegisterDto.getRoles()!=null) {
+        if (userRegisterDto.getRoles() != null) {
             List<Role> roleList = Arrays.stream(userRegisterDto.getRoles())
                     .map(a -> roleRepository.findByName(a.toUpperCase(Locale.ROOT)))
                     .collect(Collectors.toList());
@@ -148,6 +144,54 @@ public class UserServiceImpl implements UserService {
         userRepository.save(updatedUser);
 
         return UserConverter.toFullUserDto(updatedUser);
+    }
+
+    @Override
+    public UserMaxDto changeUserInfo(UserChangeInfoDto userChangeInfoDto) {
+        User user = userRepository.findById(userChangeInfoDto.getId()).orElse(null);
+        if (user == null) {
+            log.error("user not found");
+            throw new NoSuchUserException("user not found");
+        }
+        String x;
+        Long y;
+        if ((x = userChangeInfoDto.getEmail()) != null) {
+            user.setEmail(x);
+        }
+        if ((x = userChangeInfoDto.getUsername()) != null) {
+            user.setUsername(x);
+        }
+        if ((y = userChangeInfoDto.getPhone()) != null) {
+            user.setPhone(y);
+        }
+        if ((x = userChangeInfoDto.getPassword()) != null) {
+            user.setPassword(passwordEncoder.encode(x));
+        }
+        if ((x = userChangeInfoDto.getStatus()) != null) {
+            user.setStatus(Status.valueOf(x));
+        }
+        if (userChangeInfoDto.getRoles() != null) {
+            List<Role> roleList = new ArrayList<>();
+            for (String roleName : userChangeInfoDto.getRoles()) { // Если роль не начинается с префикса ROLE_, то добавить этот префикс
+                if (!roleName.toUpperCase(Locale.ROOT).startsWith("ROLE_")) {
+                    roleName = "ROLE_" + roleName;
+                }
+                Role role = roleRepository.findByName(roleName.trim().toUpperCase(Locale.ROOT));
+                if (role != null) { // Если роль найдена, то добавить ее в список ролей
+                    roleList.add(role);
+                }
+            }
+            if (roleList.size() > 0) { // Если ни одна роль не подходит, либо нет ролей, то изменения не применяются
+                user.setRoles(roleList);
+            } else {
+                log.error("cannot find at least one role from your list");
+                throw new RegisterException("cannot find at least one role from your list");
+            }
+        }
+        user.setUpdated(new Date());
+        user = userRepository.save(user);
+        return UserConverter.toUserMaxDto(user);
+
     }
 
     @Override

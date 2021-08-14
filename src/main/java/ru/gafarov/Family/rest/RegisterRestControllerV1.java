@@ -14,7 +14,6 @@ import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
-import javax.validation.ValidationException;
 
 @Slf4j
 @RestController

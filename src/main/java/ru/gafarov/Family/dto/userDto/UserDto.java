@@ -6,6 +6,7 @@ import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
+@Builder
 public class UserDto implements Comparable<UserDto> {
 
     private Long id;

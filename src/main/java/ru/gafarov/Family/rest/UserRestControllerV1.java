@@ -5,13 +5,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.UserConverter;
+import ru.gafarov.Family.dto.userDto.UserChangeInfoDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
+import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.UserService;
 
+import javax.validation.Valid;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -24,20 +27,20 @@ public class UserRestControllerV1 {
     @Autowired
     private UserService userService;
 
-    @GetMapping(value = "/userinfo")
+    @GetMapping("/userinfo")
     public ResponseEntity<UserDto> getUserInfo(@RequestHeader(value = "Authorization") String bearerToken) {
         User user = userService.findMe(bearerToken);
         return new ResponseEntity<>(UserConverter.toUserDto(user), HttpStatus.OK);
     }
 
-    @PutMapping("/change_info")
-    public ResponseEntity<UserDto> update(@RequestBody UserRegisterDto userRegisterDto
+    @PutMapping("/change_info") //Изменить свои пользовательские данные
+    public ResponseEntity<UserDto> update(@Valid @RequestBody UserChangeInfoDto userChangeInfoDto
             , @RequestHeader(value = "Authorization") String bearerToken){
-        if(userRegisterDto.getPassword()!=null){
-            throw new NoSuchUserException("You can't change password here. Try again without password");
+        if(userChangeInfoDto.getRoles() != null || userChangeInfoDto.getStatus() != null || userChangeInfoDto.getId() != null) {
+            throw new RegisterException("You can't change info as role, status, id");
         }
         User me = userService.findMe(bearerToken);
-        UserDto newUserDto = userService.changeUserInfo(me, userRegisterDto);
+        UserDto newUserDto = userService.changeUserInfo(me, userChangeInfoDto);
         return new ResponseEntity<>(newUserDto, HttpStatus.OK);
     }
 
@@ -81,5 +84,11 @@ public class UserRestControllerV1 {
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler
+    public ResponseEntity<MessageIncorrectData>handleException(RegisterException exception){
+        MessageIncorrectData message = new MessageIncorrectData();
+        message.setInfo(exception.getMessage());
+        return new ResponseEntity<>(message, HttpStatus.CONFLICT);
     }
 }

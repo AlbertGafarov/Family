@@ -19,7 +19,7 @@ public class Human extends BaseEntity {
     @Column(name = "patronim")
     private String patronim;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne()
     @JoinColumn(name = "surname_id")
     private Surname surname;
 
@@ -29,7 +29,7 @@ public class Human extends BaseEntity {
     @Column(name = "deathdate")
     private Calendar deathdate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne()
     @JoinColumn(name = "birthplace_id")
     private Birthplace birthplace;
 

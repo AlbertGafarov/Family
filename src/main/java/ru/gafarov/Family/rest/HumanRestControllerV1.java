@@ -77,7 +77,7 @@ public class HumanRestControllerV1 {
     }
 
     @ExceptionHandler
-    public ResponseEntity<MessageIncorrectData>handleException(NoSuchHumanException exception, @RequestHeader(value = "Authorization") String bearerToken){
+    public ResponseEntity<MessageIncorrectData>handleException(NoSuchHumanException exception){
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);

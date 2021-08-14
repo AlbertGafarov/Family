@@ -2,6 +2,7 @@ package ru.gafarov.Family.converter;
 
 import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.dto.userDto.UserFullDto;
+import ru.gafarov.Family.dto.userDto.UserMaxDto;
 import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
@@ -33,18 +34,16 @@ public class UserConverter {
         } catch (NullPointerException e){
             throw new RegisterException("password is required");
         }
-        return user;    }
-
+        return user;
+    }
 
     public static UserDto toUserDto(User user) {
-
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setUsername(user.getUsername());
-        userDto.setPhone(user.getPhone());
-        userDto.setEmail(user.getEmail());
-        return userDto;
-
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .build();
     }
 
     public static UserFullDto toFullUserDto(User updatedUser) {
@@ -56,5 +55,17 @@ public class UserConverter {
                 .roles(updatedUser.getRoles().stream()
                         .map(Role::getName).toArray(String[]::new)
                 ).build();
+    }
+
+    public static UserMaxDto toUserMaxDto(User user){
+        return UserMaxDto.builder()
+            .id(user.getId())
+                .username(user.getUsername())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .status(user.getStatus().toString())
+                .roles((user.getRoles().stream().map(Role::getName).toArray(String[]::new)))
+                .build();
     }
 }
