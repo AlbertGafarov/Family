@@ -337,5 +337,19 @@
         <addUniqueConstraint tableName="users"
                              columnNames="phone, email, human_id"/>
     </changeSet>
-
+    <changeSet id="1.0.26" author="albert_gafarov">
+        <addColumn tableName="humans">
+            <column name="author_id"
+                    type="integer">
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="humans"
+                                 baseColumnNames="author_id"
+                                 constraintName="human_author"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.27" author="albert_gafarov">
+        <addNotNullConstraint tableName="humans" columnName="author_id"/>
+    </changeSet>
 </databaseChangeLog>

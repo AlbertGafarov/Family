@@ -11,8 +11,11 @@ import ru.gafarov.Family.dto.humanDto.HumanFullDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.model.Human;
+import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.HumanService;
+import ru.gafarov.Family.service.UserService;
 
+import javax.validation.Valid;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,8 +24,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/humans")
 public class HumanRestControllerV1 {
 
-    @Autowired
-    HumanService humanService;
+    private final HumanService humanService;
+    private final UserService userService;
+
+    public HumanRestControllerV1(@Autowired HumanService humanService, @Autowired UserService userService) {
+        this.humanService = humanService;
+        this.userService = userService;
+    }
 
     @GetMapping("/{id}") //Получить информацию о человеке
     public ResponseEntity<HumanDto> getHumanInfo(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
@@ -43,8 +51,12 @@ public class HumanRestControllerV1 {
     }
 
     @PostMapping("") //Добавить человека
-    public ResponseEntity<HumanFullDto> addHuman(@RequestBody HumanCreateDto humanCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
-        HumanFullDto humanFullDto = humanService.addHuman(humanCreateDto);
+    public ResponseEntity<HumanFullDto> addHuman(@Valid @RequestBody HumanCreateDto humanCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
+        if(humanCreateDto.getAuthor_id() != null){
+            throw new NoSuchHumanException("You cannot set author for human. Please ask Admin for this.");
+        }
+        User me = userService.findMe(bearerToken);
+        HumanFullDto humanFullDto = humanService.addHuman(humanCreateDto, me);
 
         return new ResponseEntity<>(humanFullDto, HttpStatus.OK);
     }
@@ -71,9 +83,14 @@ public class HumanRestControllerV1 {
         return new ResponseEntity<>(listOfHumanDto, HttpStatus.OK);
     }
     @PutMapping("/change_info")// Изменить или добавить информацию о человеке
-    public ResponseEntity<HumanFullDto> update(@RequestBody HumanCreateDto humanCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
-        HumanFullDto newHumanFullDto = humanService.changeHumanInfo(humanCreateDto);
-        return new ResponseEntity<>(newHumanFullDto, HttpStatus.OK);
+    public ResponseEntity<HumanFullDto> update(@Valid @RequestBody HumanCreateDto humanCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
+        User me = userService.findMe(bearerToken);
+        if(humanCreateDto.getAuthor_id() != null){
+            throw new NoSuchHumanException("You cannot change author for human. Please ask Admin for this.");
+        }
+        Human newHuman = humanService.changeHumanInfo(humanCreateDto, me);
+        HumanFullDto humanFullDto = HumanConverter.toHumanFullDto(newHuman);
+        return new ResponseEntity<>(humanFullDto, HttpStatus.OK);
     }
 
     @ExceptionHandler

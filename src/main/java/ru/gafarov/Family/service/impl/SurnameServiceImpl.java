@@ -16,7 +16,7 @@ public class SurnameServiceImpl implements SurnameService {
     SurnameRepository surnameRepository;
 
     @Override
-    public Surname getSurname(Long id) {
+    public Surname getSurname(Long id) throws NoSuchSurnameException {
         Optional<Surname> opt = surnameRepository.findById(id);
         Surname surname;
         if (opt.isPresent()){

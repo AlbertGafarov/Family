@@ -6,11 +6,16 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.gafarov.Family.converter.HumanConverter;
+import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
+import ru.gafarov.Family.dto.humanDto.HumanMaxDto;
 import ru.gafarov.Family.dto.userDto.UserChangeInfoDto;
 import ru.gafarov.Family.dto.userDto.UserMaxDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
+import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
+import ru.gafarov.Family.model.Human;
 import ru.gafarov.Family.service.HumanService;
 import ru.gafarov.Family.service.UserService;
 
@@ -54,12 +59,17 @@ public class AdminRestControllerV1 {
         return new ResponseEntity<>(userMaxDto, HttpStatus.OK);
     }
 
+    @PutMapping("/humans")
+    public ResponseEntity<HumanMaxDto> updateHuman(@Valid @RequestBody HumanCreateDto humanCreateDto){
+        Human human = humanService.changeHumanInfo(humanCreateDto, null);
+        return new ResponseEntity<>(HumanConverter.toHumanMaxDto(human), HttpStatus.OK);
+    }
+
     @ExceptionHandler
     public ResponseEntity<MessageIncorrectData>handleException(EmptyResultDataAccessException exception){
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
-
     }
 
     @ExceptionHandler
@@ -71,6 +81,12 @@ public class AdminRestControllerV1 {
     }
     @ExceptionHandler
     public ResponseEntity<MessageIncorrectData>handleException(NoSuchUserException exception){
+        MessageIncorrectData message = new MessageIncorrectData();
+        message.setInfo(exception.getMessage());
+        return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler
+    public ResponseEntity<MessageIncorrectData>handleException(NoSuchHumanException exception){
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.CONFLICT);

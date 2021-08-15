@@ -2,32 +2,32 @@ package ru.gafarov.Family.dto.humanDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 @Data
 @JsonIgnoreProperties
+@SuperBuilder
 public class HumanFullDto {
 
-    private Long id;
+    Long id;
 
-    private String name;
+    protected String name;
 
-    private String patronim;
+    protected String patronim;
 
-    private String surname;
+    protected String surname;
 
-    private String birthdate;
+    protected String birthdate;
 
-    private String deathdate;
+    protected String deathdate;
 
-    private String birthplace;
+    protected String birthplace;
 
-    private char gender;
+    protected char gender;
 
-    private List<HumanShortDto> parents;
+    protected List<HumanShortDto> parents;
 
-    private List<HumanShortDto> children;
+    protected List<HumanShortDto> children;
 }

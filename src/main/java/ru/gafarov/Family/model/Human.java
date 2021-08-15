@@ -1,7 +1,6 @@
 package ru.gafarov.Family.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -10,6 +9,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "humans")
 public class Human extends BaseEntity {
 
@@ -32,6 +34,10 @@ public class Human extends BaseEntity {
     @ManyToOne()
     @JoinColumn(name = "birthplace_id")
     private Birthplace birthplace;
+
+    @ManyToOne()
+    @JoinColumn(name = "author_id")
+    private User author;
 
     @Column(name = "gender")
     private char gender;

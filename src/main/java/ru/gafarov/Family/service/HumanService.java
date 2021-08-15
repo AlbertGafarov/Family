@@ -18,11 +18,11 @@ public interface HumanService {
 
     HumanFullDto getHumanFullDto(Long id);
 
-    HumanFullDto addHuman(HumanCreateDto humanCreateDto);
+    HumanFullDto addHuman(HumanCreateDto humanCreateDto, User me);
 
     List<Human> searchHuman(String partOfName);
 
-    HumanFullDto changeHumanInfo(HumanCreateDto humanCreateDto);
+    Human changeHumanInfo(HumanCreateDto humanCreateDto, User me);
 
     void deleteById(Long id);
 }
