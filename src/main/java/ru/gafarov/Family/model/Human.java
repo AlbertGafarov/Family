@@ -1,6 +1,8 @@
 package ru.gafarov.Family.model;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -9,9 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder
 @Table(name = "humans")
 public class Human extends BaseEntity {
 

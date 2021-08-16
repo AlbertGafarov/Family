@@ -3,6 +3,7 @@ package ru.gafarov.Family.model;
 import com.sun.istack.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
+@SuperBuilder
 @Table(name = "surnames")
 public class Surname extends BaseEntity {
 

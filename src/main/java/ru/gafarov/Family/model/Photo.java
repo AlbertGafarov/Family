@@ -2,6 +2,7 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
+@SuperBuilder
 @Table(name = "photos")
 public class Photo extends BaseEntity {
 

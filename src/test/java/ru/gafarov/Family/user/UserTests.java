@@ -6,7 +6,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import ru.gafarov.Family.dto.userDto.AuthenticationRequestDto;
-import ru.gafarov.Family.dto.userDto.UserRegisterDto;
+import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserTokenDto;
 
 import java.net.URI;
@@ -17,21 +17,26 @@ class UserTests {
 	@Autowired
 	RestTemplate restTemplate;
 
-	public UserRegisterDto register(String username, String email, Long phone, String password){ //регистрация тестового пользователя
+	public void register(String username, String email, Long phone, String password){ //регистрация тестового пользователя
 
-		UserRegisterDto userRegisterDto = new UserRegisterDto(username,email,phone,password);
-		System.out.println(userRegisterDto);
+		UserCreateDto userCreateDto = UserCreateDto.builder()
+				.username(username)
+				.email(email)
+				.phone(phone)
+				.password(password)
+				.build();
+		System.out.println(userCreateDto);
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json");
-		HttpEntity<UserRegisterDto> httpEntity = new HttpEntity<>(userRegisterDto, headers);
-		ResponseEntity<UserRegisterDto> response = restTemplate
+		HttpEntity<UserCreateDto> httpEntity = new HttpEntity<>(userCreateDto, headers);
+		ResponseEntity<UserCreateDto> response = restTemplate
 				.exchange(URI.create("http://localhost:8071/api/v1/register")
 						, HttpMethod.POST
 						, httpEntity
-						, new ParameterizedTypeReference<UserRegisterDto>() {});
-		UserRegisterDto newUserRegisterDto = response.getBody();
-		assert newUserRegisterDto != null;
-		return newUserRegisterDto;
+						, new ParameterizedTypeReference<>() {
+						});
+		UserCreateDto newUserCreateDto = response.getBody();
+		assert newUserCreateDto != null;
 
 	}
 

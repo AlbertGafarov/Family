@@ -1,18 +1,10 @@
 package ru.gafarov.Family.dto.userDto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Data
-@Builder
-public class UserFullDto {
+@SuperBuilder
+public class UserFullDto extends UserDto{
 
-    private Long id;
-    private String username;
-    private long phone;
-    private String email;
-    private String[] roles;
+    private final String[] roles;
 
 }

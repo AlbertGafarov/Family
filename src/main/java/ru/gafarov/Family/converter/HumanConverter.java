@@ -1,46 +1,32 @@
 package ru.gafarov.Family.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import ru.gafarov.Family.dto.humanDto.*;
-import ru.gafarov.Family.exception_handling.NoSuchHumanException;
+import ru.gafarov.Family.dto.humanDto.HumanDto;
+import ru.gafarov.Family.dto.humanDto.HumanFullDto;
+import ru.gafarov.Family.dto.humanDto.HumanMaxDto;
+import ru.gafarov.Family.dto.humanDto.HumanShortDto;
 import ru.gafarov.Family.model.Human;
-import ru.gafarov.Family.service.BirthplaceService;
-import ru.gafarov.Family.service.HumanService;
-import ru.gafarov.Family.service.SurnameService;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 public class HumanConverter {
-
-    @Autowired
-    HumanService humanService;
-
-    @Autowired
-    BirthplaceService birthplaceService;
-
-    @Autowired
-    SurnameService surnameService;
 
     public static final DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public static HumanDto toHumanDto(Human human){
-        HumanDto humanDto = new HumanDto();
-        humanDto.setId(human.getId());
+        HumanDto humanDto = HumanDto.builder()
+                .id(human.getId())
+                .gender(human.getGender())
+                .name(human.getName())
+                .patronim(human.getPatronim())
+                .build();
         if(human.getBirthdate()!=null){
             humanDto.setBirthdate(dateFormat.format(human.getBirthdate().getTime()));
         }
-        humanDto.setGender(human.getGender());
         if(human.getDeathdate()!=null){
             humanDto.setDeathdate(dateFormat.format(human.getDeathdate().getTime()));
         }
-        humanDto.setName(human.getName());
-        humanDto.setPatronim(human.getPatronim());
         if(human.getSurname()!=null){
         humanDto.setSurname(human.getSurname().toString(human.getGender()));
         }
@@ -51,12 +37,12 @@ public class HumanConverter {
     }
 
     public static HumanShortDto toHumanShortDto(Human human){
-        HumanShortDto humanShortDto = new HumanShortDto();
-        humanShortDto.setId(human.getId());
-        humanShortDto.setSurname(human.getSurname().toString(human.getGender()));
-        humanShortDto.setName(human.getName());
-        humanShortDto.setPatronim(human.getPatronim());
-        return humanShortDto;
+        return HumanShortDto.builder()
+                .id(human.getId())
+                .surname(human.getSurname().toString(human.getGender()))
+                .name(human.getName())
+                .patronim(human.getPatronim())
+                .build();
     }
 
     public static HumanFullDto toHumanFullDto(Human human){
@@ -111,53 +97,6 @@ public class HumanConverter {
             humanMaxDto.setDeathdate(dateFormat.format(human.getDeathdate().getTime()));
         }
         return humanMaxDto;
-    }
-
-    public Human toHuman(HumanCreateDto humanCreateDto){
-
-        Human human = Human.builder()
-                .name(humanCreateDto.getName().trim())
-                .birthdate(humanCreateDto.getBirthdate())
-                .deathdate(humanCreateDto.getDeathdate())
-                .patronim(humanCreateDto.getPatronim())
-                .gender(humanCreateDto.getGender())
-                .surname(surnameService.getSurname(humanCreateDto.getSurname_id()))
-                .build();
-
-        List<Human> parents =  Arrays.stream(humanCreateDto.getParents_id())
-                .mapToObj(i-> humanService.getHuman((long) i))
-                .peek(a -> {
-                    if(a.getBirthdate() != null && humanCreateDto.getBirthdate() !=null){
-                        if(a.getBirthdate().after(humanCreateDto.getBirthdate())){
-                            throw new NoSuchHumanException("parent cannot be younger then human");
-                        }
-                    }
-                })
-                .collect(Collectors.toList());
-
-        human.setParents(parents);
-
-        List<Human> children =  Arrays.stream(humanCreateDto.getChildren_id())
-                .mapToObj(i-> humanService.getHuman((long) i))
-                .peek(a -> {
-                    if(a.getBirthdate() != null && humanCreateDto.getBirthdate() !=null) {
-                        if (a.getBirthdate().before(humanCreateDto.getBirthdate())) {
-                            throw new NoSuchHumanException("child cannot be elder then human");
-                        }
-                    }
-                })
-                .collect(Collectors.toList());
-
-        human.setChildren(children);
-
-        List<Human> previousSurnames =  Arrays.stream(humanCreateDto.getPrevious_surnames_id())
-                .mapToObj(i-> humanService.getHuman((long) i))
-                .collect(Collectors.toList());
-
-        human.setBirthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()));
-
-        return human;
-
     }
 
 }

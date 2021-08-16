@@ -60,7 +60,7 @@ public class PhotoServiceImpl implements PhotoService {
     @Override
     public PhotoDto save(MultipartFile file, Date photoDate) throws IOException { // Добавление инфо о фото в базу данных + сохранение файл в файловом хранилище
 
-        Photo photo = new Photo();
+        Photo photo = Photo.builder().build();
         String imageResolution; // разрешение изображения
 
 //Создать папки, если их нет:

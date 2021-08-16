@@ -1,32 +1,14 @@
 package ru.gafarov.Family.dto.userDto;
 
-import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
+import java.util.Date;
 
-@Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserMaxDto {
+@SuperBuilder
+public class UserMaxDto extends UserFullDto {
 
-    @Setter
-    private Long id;
-    @Size(min = 2, message = "username must be more two symbol")
-    private String username;
-    @Min(79000000000L)
-    @Max(79999999999L)
-    private Long phone;
-    @Email
-    private String email;
-    private String[] roles;
-
-    @Size(min = 3, message = "password must be more two symbol")
-    private String password;
-
-    private String status;
-
+    private final String password;
+    private final String status;
+    private final Date created;
+    private final Date updated;
 }

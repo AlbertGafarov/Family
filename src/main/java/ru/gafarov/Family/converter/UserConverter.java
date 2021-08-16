@@ -1,36 +1,34 @@
 package ru.gafarov.Family.converter;
 
-import ru.gafarov.Family.dto.userDto.UserDto;
-import ru.gafarov.Family.dto.userDto.UserFullDto;
-import ru.gafarov.Family.dto.userDto.UserMaxDto;
-import ru.gafarov.Family.dto.userDto.UserRegisterDto;
+import ru.gafarov.Family.dto.userDto.*;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
 import ru.gafarov.Family.model.User;
 
 public class UserConverter {
 
-    public static User toUser(UserRegisterDto userRegisterDto) throws RegisterException{
-        User user = new User();
-        user.setId(userRegisterDto.getId());
+    public static User toUser(UserCreateDto userCreateDto) throws RegisterException{
+        User user = User.builder()
+                .id(userCreateDto.getId())
+                .build();
         try {
-        user.setUsername(userRegisterDto.getUsername().trim());
+        user.setUsername(userCreateDto.getUsername().trim());
         } catch (NullPointerException e){
             throw new RegisterException("username is required");
         }
         try {
-            user.setPhone(userRegisterDto.getPhone());
+            user.setPhone(userCreateDto.getPhone());
         } catch (NullPointerException e){
             throw new RegisterException("phone is required");
         }
 
         try {
-            user.setEmail(userRegisterDto.getEmail().trim());
+            user.setEmail(userCreateDto.getEmail().trim());
         } catch (NullPointerException e){
             throw new RegisterException("email is required");
         }
         try {
-            user.setPassword(userRegisterDto.getPassword().trim());
+            user.setPassword(userCreateDto.getPassword().trim());
         } catch (NullPointerException e){
             throw new RegisterException("password is required");
         }

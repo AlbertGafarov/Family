@@ -2,6 +2,7 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "roles")
 @Data
+@SuperBuilder
 public class Role extends BaseEntity {
 
     @Column(name = "name")

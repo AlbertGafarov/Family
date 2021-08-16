@@ -1,9 +1,9 @@
 package ru.gafarov.Family.model;
 
 import com.sun.istack.NotNull;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.List;
@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Data
+@SuperBuilder
 public class User extends BaseEntity{
 
     @NotNull
@@ -19,7 +20,7 @@ public class User extends BaseEntity{
     private String username;
 
     @Column(name = "phone")
-    private long phone;
+    private Long phone;
 
     @OneToOne
     @JoinColumn(name = "human_id")

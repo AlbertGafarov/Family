@@ -12,11 +12,7 @@ public interface HumanService {
 
     Human getHuman(Long id);
 
-    HumanDto getHumanDto(Long id);
-
     List<HumanDto> getAllHumansDto();
-
-    HumanFullDto getHumanFullDto(Long id);
 
     HumanFullDto addHuman(HumanCreateDto humanCreateDto, User me);
 

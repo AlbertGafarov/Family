@@ -1,33 +1,26 @@
 package ru.gafarov.Family.dto.humanDto;
 
-import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
-import java.util.Calendar;
-import java.util.Date;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @JsonIgnoreProperties
-public class HumanDto implements Comparable<HumanDto>{
+@SuperBuilder
+public class HumanDto extends HumanShortDto implements Comparable<HumanDto>{
 
-    private Long id;
+    protected String birthdate;
 
-    private String name;
+    protected String deathdate;
 
-    private String patronim;
+    protected String birthplace;
 
-    private String surname;
-
-    private String birthdate;
-
-    private String deathdate;
-
-    private String birthplace;
-
-    private char gender;
+    protected char gender;
 
     @Override
     public int compareTo(HumanDto o) {
-        return this.id.compareTo(o.id);
+        return id.compareTo(o.id);
     }
 }

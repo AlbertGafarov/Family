@@ -7,15 +7,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.HumanConverter;
+import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
 import ru.gafarov.Family.dto.humanDto.HumanMaxDto;
-import ru.gafarov.Family.dto.userDto.UserChangeInfoDto;
+import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserMaxDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.NoSuchHumanException;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Human;
+import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.HumanService;
 import ru.gafarov.Family.service.UserService;
 
@@ -49,13 +51,14 @@ public class AdminRestControllerV1 {
     }
 
     @PutMapping("/users") // Изменить любые параметры пользователя.
-    public ResponseEntity<UserMaxDto> updateUser(@Valid @RequestBody UserChangeInfoDto userChangeInfoDto
+    public ResponseEntity<UserMaxDto> updateUser(@Valid @RequestBody UserCreateDto userCreateDto
             , @RequestHeader Map<String, String> headers){
-        log.info("IN updateUser(): Request: PUT /api/v1/admin/users \r\n\tHeaders = {} \r\n\tBody = {}", headers, userChangeInfoDto);
-        if(userChangeInfoDto.getId()==null){
+        log.info("IN updateUser(): Request: PUT /api/v1/admin/users \r\n\tHeaders = {} \r\n\tBody = {}", headers, userCreateDto);
+        if(userCreateDto.getId()==null){
             throw new NoSuchUserException("id is required");
         }
-        UserMaxDto userMaxDto = userService.changeUserInfo(userChangeInfoDto);
+        User user = userService.changeUserInfo(null, userCreateDto);
+        UserMaxDto userMaxDto = UserConverter.toUserMaxDto(user);
         return new ResponseEntity<>(userMaxDto, HttpStatus.OK);
     }
 

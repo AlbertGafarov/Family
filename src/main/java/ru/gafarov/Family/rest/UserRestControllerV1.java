@@ -5,9 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.UserConverter;
-import ru.gafarov.Family.dto.userDto.UserChangeInfoDto;
+import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
-import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
@@ -34,14 +33,15 @@ public class UserRestControllerV1 {
     }
 
     @PutMapping("/change_info") //Изменить свои пользовательские данные
-    public ResponseEntity<UserDto> update(@Valid @RequestBody UserChangeInfoDto userChangeInfoDto
+    public ResponseEntity<UserDto> update(@Valid @RequestBody UserCreateDto userCreateDto
             , @RequestHeader(value = "Authorization") String bearerToken){
-        if(userChangeInfoDto.getRoles() != null || userChangeInfoDto.getStatus() != null || userChangeInfoDto.getId() != null) {
+        if(userCreateDto.getRoles() != null || userCreateDto.getStatus() != null || userCreateDto.getId() != null) {
             throw new RegisterException("You can't change info as role, status, id");
         }
         User me = userService.findMe(bearerToken);
-        UserDto newUserDto = userService.changeUserInfo(me, userChangeInfoDto);
-        return new ResponseEntity<>(newUserDto, HttpStatus.OK);
+        User newMe = userService.changeUserInfo(me, userCreateDto);
+        UserDto userDto = UserConverter.toUserDto(newMe);
+        return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
     @GetMapping("/search_user/{partOfName}")

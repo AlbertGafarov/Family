@@ -34,7 +34,8 @@ public class HumanRestControllerV1 {
 
     @GetMapping("/{id}") //Получить информацию о человеке
     public ResponseEntity<HumanDto> getHumanInfo(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
-        HumanDto humanDto = humanService.getHumanDto(id);
+        Human human = humanService.getHuman(id);
+        HumanDto humanDto = HumanConverter.toHumanDto(human);
         return new ResponseEntity<>(humanDto, HttpStatus.OK);
     }
 
@@ -46,8 +47,9 @@ public class HumanRestControllerV1 {
 
     @GetMapping("/full_info/{id}") //Получить подробную информацию о человеке
     public ResponseEntity<HumanFullDto> getHumanFullInfo(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
-        HumanFullDto humanFullDtoDto = humanService.getHumanFullDto(id);
-        return new ResponseEntity<>(humanFullDtoDto, HttpStatus.OK);
+        Human human = humanService.getHuman(id);
+        HumanFullDto humanFullDto = HumanConverter.toHumanFullDto(human);
+        return new ResponseEntity<>(humanFullDto, HttpStatus.OK);
     }
 
     @PostMapping("") //Добавить человека

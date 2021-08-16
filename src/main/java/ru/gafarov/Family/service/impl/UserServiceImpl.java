@@ -6,7 +6,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.UserConverter;
-import ru.gafarov.Family.dto.userDto.*;
+import ru.gafarov.Family.dto.userDto.UserCreateDto;
+import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.exception_handling.NoSuchUserException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
@@ -18,8 +19,10 @@ import ru.gafarov.Family.security.jwt.JwtTokenProvider;
 import ru.gafarov.Family.service.Transcript;
 import ru.gafarov.Family.service.UserService;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 @Service
 @Slf4j
@@ -63,10 +66,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto register(UserRegisterDto userRegisterDto) throws RegisterException {
-
-
-        User user = UserConverter.toUser(userRegisterDto);
+    public UserDto register(UserCreateDto userCreateDto) throws RegisterException {
+        User user = UserConverter.toUser(userCreateDto);
         User newUser = register(user);
         return UserConverter.toUserDto(newUser);
     }
@@ -112,67 +113,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto changeUserInfo(User me, UserChangeInfoDto userChangeInfoDto) {
-        userChangeInfoDto.setId(me.getId());
-        UserMaxDto userMaxDto = changeUserInfo(userChangeInfoDto);
-        return UserDto.builder()
-                .id(userMaxDto.getId())
-                .username(userMaxDto.getUsername())
-                .phone(userMaxDto.getPhone())
-                .email(userMaxDto.getEmail())
-                .build();
-    }
-
-    @Override
-    public UserFullDto changeUserInfo(UserRegisterDto userRegisterDto) {
-        User updatedUser = UserConverter.toUser(userRegisterDto);
-
-        User currentUser = userRepository.findById(userRegisterDto.getId()).orElse(null);
-        if (currentUser == null) {
-            throw new NoSuchUserException("user not found");
-        }
-        updatedUser.setUpdated(new Date());
-        if (userRegisterDto.getRoles() != null) {
-            List<Role> roleList = Arrays.stream(userRegisterDto.getRoles())
-                    .map(a -> roleRepository.findByName(a.toUpperCase(Locale.ROOT)))
-                    .collect(Collectors.toList());
-            updatedUser.setRoles(roleList);
-        }
-        updatedUser.setCreated(currentUser.getCreated());
-        updatedUser.setStatus(currentUser.getStatus());
-        updatedUser.setPassword(currentUser.getPassword());
-        userRepository.save(updatedUser);
-
-        return UserConverter.toFullUserDto(updatedUser);
-    }
-
-    @Override
-    public UserMaxDto changeUserInfo(UserChangeInfoDto userChangeInfoDto) {
-        User user = userRepository.findById(userChangeInfoDto.getId()).orElse(null);
-        if (user == null) {
-            log.error("user not found");
-            throw new NoSuchUserException("user not found");
+    public User changeUserInfo(User user, UserCreateDto userCreateDto) {
+        if(user == null) {
+            if ((user = userRepository.findById(userCreateDto.getId()).orElse(null)) == null) {
+                log.error("user not found");
+                throw new NoSuchUserException("user not found");
+            }
         }
         String x;
         Long y;
-        if ((x = userChangeInfoDto.getEmail()) != null) {
+        if ((x = userCreateDto.getEmail()) != null) {
             user.setEmail(x);
         }
-        if ((x = userChangeInfoDto.getUsername()) != null) {
+        if ((x = userCreateDto.getUsername()) != null) {
             user.setUsername(x);
         }
-        if ((y = userChangeInfoDto.getPhone()) != null) {
+        if ((y = userCreateDto.getPhone()) != null) {
             user.setPhone(y);
         }
-        if ((x = userChangeInfoDto.getPassword()) != null) {
+        if ((x = userCreateDto.getPassword()) != null) {
             user.setPassword(passwordEncoder.encode(x));
         }
-        if ((x = userChangeInfoDto.getStatus()) != null) {
+        if ((x = userCreateDto.getStatus()) != null) {
             user.setStatus(Status.valueOf(x));
         }
-        if (userChangeInfoDto.getRoles() != null) {
+        if (userCreateDto.getRoles() != null) {
             List<Role> roleList = new ArrayList<>();
-            for (String roleName : userChangeInfoDto.getRoles()) { // Если роль не начинается с префикса ROLE_, то добавить этот префикс
+            for (String roleName : userCreateDto.getRoles()) { // Если роль не начинается с префикса ROLE_, то добавить этот префикс
                 if (!roleName.toUpperCase(Locale.ROOT).startsWith("ROLE_")) {
                     roleName = "ROLE_" + roleName;
                 }
@@ -190,8 +157,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setUpdated(new Date());
         user = userRepository.save(user);
-        return UserConverter.toUserMaxDto(user);
-
+        return user;
     }
 
     @Override

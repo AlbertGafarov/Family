@@ -2,12 +2,14 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@SuperBuilder
 @Entity
 @Table(name = "messages")
 public class Message extends BaseEntity {

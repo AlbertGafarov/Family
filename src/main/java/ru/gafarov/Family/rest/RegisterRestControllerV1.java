@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
-import ru.gafarov.Family.dto.userDto.UserRegisterDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.service.UserService;
@@ -24,9 +24,9 @@ public class RegisterRestControllerV1 {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register( @Valid @RequestBody UserRegisterDto userRegisterDto){
-        UserDto userDto = userService.register(userRegisterDto);
-        log.info("POST api/v1/register body: {}", userRegisterDto);
+    public ResponseEntity<UserDto> register( @Valid @RequestBody UserCreateDto userCreateDto){
+        UserDto userDto = userService.register(userCreateDto);
+        log.info("POST api/v1/register body: {}", userCreateDto);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 

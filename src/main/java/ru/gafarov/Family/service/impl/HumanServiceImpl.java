@@ -24,16 +24,14 @@ public class HumanServiceImpl implements HumanService {
 
     private final Transcript transcript;
     private final HumanRepository humanRepository;
-    private final HumanConverter humanConverter;
     private final BirthplaceService birthplaceService;
     private final SurnameService surnameService;
     private final UserService userService;
 
     @Autowired
-    public HumanServiceImpl(Transcript transcript, HumanRepository humanRepository, HumanConverter humanConverter, BirthplaceService birthplaceService, SurnameService surnameService, UserService userService) {
+    public HumanServiceImpl(Transcript transcript, HumanRepository humanRepository, BirthplaceService birthplaceService, SurnameService surnameService, UserService userService) {
         this.transcript = transcript;
         this.humanRepository = humanRepository;
-        this.humanConverter = humanConverter;
         this.birthplaceService = birthplaceService;
         this.surnameService = surnameService;
         this.userService = userService;
@@ -53,22 +51,12 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public HumanDto getHumanDto(Long id){
-        return HumanConverter.toHumanDto(getHuman(id));
-    }
-
-    @Override
     public List<HumanDto> getAllHumansDto() {
         List<Human> humanList = humanRepository.findAll();
         return humanList.stream()
                 .map(HumanConverter::toHumanDto)
                 .sorted()
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public HumanFullDto getHumanFullDto(Long id) {
-        return HumanConverter.toHumanFullDto(getHuman(id));
     }
 
     @Override
@@ -92,10 +80,30 @@ public class HumanServiceImpl implements HumanService {
                 throw new NoSuchHumanException("birthdate cannot be after deathdate");
             }
         }
-        Human human = humanConverter.toHuman(humanCreateDto);
-        human.setAuthor(me);
-        human.setCreated(new Date());
-        human.setStatus(Status.ACTIVE);
+        Human human = Human.builder()
+            .name(humanCreateDto.getName())
+            .surname(surnameService.getSurname(humanCreateDto.getSurname_id()))
+            .patronim(humanCreateDto.getPatronim())
+            .birthdate(birthdate)
+            .deathdate(deathdate)
+            .birthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()))
+            .children(Arrays.stream(humanCreateDto.getChildren_id()).mapToObj(a -> getHuman((long) a)).peek(a -> {
+                        if(a.getBirthdate().before(birthdate)){
+                            throw new NoSuchHumanException("child cannot be elder than human");
+                        }
+                    }
+            ).collect(Collectors.toList()))
+            .parents(Arrays.stream(humanCreateDto.getParents_id()).mapToObj(a -> getHuman((long) a)).peek(a -> {
+                if(a.getBirthdate().after(birthdate)){
+                    throw new NoSuchHumanException("parent cannot be younger then human");
+                }
+            }).collect(Collectors.toList()))
+            .gender(humanCreateDto.getGender())
+            .author(me)
+            .created(new Date())
+            .status(Status.ACTIVE)
+            .updated(new Date())
+            .build();
         Human addedHuman = humanRepository.save(human);
         return HumanConverter.toHumanFullDto(addedHuman);
     }
