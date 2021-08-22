@@ -1,6 +1,7 @@
 package ru.gafarov.Family.security.jwt;
 
 import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -41,6 +43,7 @@ public class JwtTokenProvider {
 
 
     public String createToken(String username, List<Role> roles){
+        log.info("in createToken()");
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("roles", getRolesNames(roles));
 
@@ -53,14 +56,14 @@ public class JwtTokenProvider {
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
-        System.out.println("вот и наш токен " +token);
+        log.info("out createToken(), token = {}", token);
         return token;
     }
 
     public Authentication getAuthentication(String token){
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(getUserName(token));
         String username = userDetails.getUsername();
-        System.out.println("Ваше имя" + username);
+        log.info("in getAuthentication(), username = {}", username);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 

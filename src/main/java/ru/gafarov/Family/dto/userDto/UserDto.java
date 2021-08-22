@@ -1,8 +1,10 @@
 package ru.gafarov.Family.dto.userDto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+@Data
 @Getter
 @SuperBuilder
 public class UserDto implements Comparable<UserDto> {
@@ -17,4 +19,13 @@ public class UserDto implements Comparable<UserDto> {
         return this.id.compareTo(anotherUser.id);
     }
 
+    @Override
+    public String toString() {
+        return "UserDto{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", phone=" + phone +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

@@ -84,6 +84,7 @@ public class HumanConverter {
                 .birthplace(human.getBirthplace().getBirthplace())
                 .children(human.getChildren().stream().map(HumanConverter::toHumanShortDto).collect(Collectors.toList()))
                 .parents(human.getParents().stream().map(HumanConverter::toHumanShortDto).collect(Collectors.toList()))
+                .gender(human.getGender())
                 .author(UserConverter.toUserDto(human.getAuthor()))
                 .status(human.getStatus().toString())
                 .created(human.getCreated())

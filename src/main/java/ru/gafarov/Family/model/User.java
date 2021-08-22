@@ -3,6 +3,7 @@ package ru.gafarov.Family.model;
 import com.sun.istack.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import java.util.List;
 @Table(name = "users")
 @Data
 @SuperBuilder
+@NoArgsConstructor
 public class User extends BaseEntity{
 
     @NotNull

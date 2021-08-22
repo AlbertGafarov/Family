@@ -3,6 +3,7 @@ package ru.gafarov.Family.model;
 import com.sun.istack.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Column;
@@ -13,6 +14,7 @@ import javax.persistence.Table;
 @Data
 @Entity
 @SuperBuilder
+@NoArgsConstructor
 @Table(name = "surnames")
 public class Surname extends BaseEntity {
 
@@ -29,11 +31,11 @@ public class Surname extends BaseEntity {
     @Column(name = "declension")
     private char declension;
 
-    public String toString(char gender) {
+    public String toString(String gender) {
         if(surname==null){
             return null;
         }
-        if(declension=='Y'&& gender=='W'){
+        if(declension=='Y'&& gender.equals("W")){
             return surname+"a";
         } else {
             return surname;

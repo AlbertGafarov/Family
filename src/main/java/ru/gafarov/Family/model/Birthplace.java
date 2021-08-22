@@ -2,6 +2,7 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Column;
@@ -12,6 +13,7 @@ import javax.persistence.Table;
 @Entity
 @Data
 @SuperBuilder
+@NoArgsConstructor
 @Table(name = "birthplaces")
 public class Birthplace extends BaseEntity {
 

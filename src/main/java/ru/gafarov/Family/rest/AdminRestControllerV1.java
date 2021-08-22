@@ -59,6 +59,7 @@ public class AdminRestControllerV1 {
         }
         User user = userService.changeUserInfo(null, userCreateDto);
         UserMaxDto userMaxDto = UserConverter.toUserMaxDto(user);
+        System.out.println(userMaxDto);
         return new ResponseEntity<>(userMaxDto, HttpStatus.OK);
     }
 

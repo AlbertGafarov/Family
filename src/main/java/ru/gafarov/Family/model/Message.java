@@ -2,6 +2,7 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import java.util.Date;
 @Data
 @SuperBuilder
 @Entity
+@NoArgsConstructor
 @Table(name = "messages")
 public class Message extends BaseEntity {
 

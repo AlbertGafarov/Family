@@ -17,7 +17,7 @@ public class HumanDto extends HumanShortDto implements Comparable<HumanDto>{
 
     protected String birthplace;
 
-    protected char gender;
+    protected String gender;
 
     @Override
     public int compareTo(HumanDto o) {

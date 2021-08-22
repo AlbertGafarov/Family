@@ -212,14 +212,18 @@ public class HumanServiceImpl implements HumanService {
                 throw new NoSuchHumanException(e.getMessage());
             }
         }
-        if((y = humanCreateDto.getAuthor_id()) != null){
+        if((y = humanCreateDto.getAuthor_id()) != null) {
             User author;
             try {
                 author = userService.findById(y);
-            } catch (NoSuchUserException e){
+            } catch (NoSuchUserException e) {
                 throw new NoSuchHumanException(e.getMessage());
             }
             human.setAuthor(author);
+        }
+        if((x = humanCreateDto.getStatus()) != null){
+
+            human.setStatus(Status.valueOf(x));
         }
 
         human.setUpdated(new Date());

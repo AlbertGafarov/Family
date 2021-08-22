@@ -2,6 +2,7 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
@@ -12,6 +13,7 @@ import java.util.List;
 @Data
 @Entity
 @SuperBuilder
+@NoArgsConstructor
 @Table(name = "humans")
 public class Human extends BaseEntity {
 
@@ -40,7 +42,7 @@ public class Human extends BaseEntity {
     private User author;
 
     @Column(name = "gender")
-    private char gender;
+    private String gender;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "humans_parents",

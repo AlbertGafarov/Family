@@ -2,16 +2,18 @@ package ru.gafarov.Family.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity
 @Table(name = "roles")
 @Data
+@Entity
 @SuperBuilder
+@NoArgsConstructor
 public class Role extends BaseEntity {
 
     @Column(name = "name")

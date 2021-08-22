@@ -3,10 +3,7 @@ package ru.gafarov.Family.dto.humanDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.Calendar;
 
 @Data
@@ -33,7 +30,8 @@ public class HumanCreateDto {
     private Long birthplace_id;
 
     @NotNull
-    private Character gender;
+    @Pattern(regexp = "[MW]", message = "gender may be M or W")
+    private String gender;
 
     private int[] parents_id;
 
@@ -45,4 +43,6 @@ public class HumanCreateDto {
 
     @Min(1)
     private Long author_id;
+
+    private String status;
 }

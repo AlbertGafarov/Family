@@ -5,7 +5,11 @@ import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
 import ru.gafarov.Family.model.User;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 public class UserConverter {
+    public static final DateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy'T'hh.mm.ss");
 
     public static User toUser(UserCreateDto userCreateDto) throws RegisterException{
         User user = User.builder()
@@ -57,13 +61,15 @@ public class UserConverter {
 
     public static UserMaxDto toUserMaxDto(User user){
         return UserMaxDto.builder()
-            .id(user.getId())
+                .id(user.getId())
                 .username(user.getUsername())
-                .phone(user.getPhone())
                 .email(user.getEmail())
+                .phone(user.getPhone())
                 .password(user.getPassword())
                 .status(user.getStatus().toString())
                 .roles((user.getRoles().stream().map(Role::getName).toArray(String[]::new)))
+                .updated(user.getUpdated())
+                .created(user.getCreated())
                 .build();
     }
 }
