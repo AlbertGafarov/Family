@@ -122,6 +122,14 @@ public class HumanServiceImpl implements HumanService {
     @Override
     public Human changeHumanInfo(HumanCreateDto humanCreateDto, User me) throws NoSuchHumanException { //Изменить информацию о человеке
 
+        Human human = humanRepository.findById(humanCreateDto.getId()).orElse(null); // Получаем человека из БД
+        if(human==null){ // Если человек не найден, бросаем эксепшн
+            throw new NoSuchHumanException("Not found human with id = " + humanCreateDto.getId());
+        }
+        if(!(human.getAuthor().equals(me) || me == null)){
+            throw new NoSuchHumanException("You are not author for this human. Please ask admin for change info");
+        }
+
         Calendar birthdate = humanCreateDto.getBirthdate();
         Calendar deathdate = humanCreateDto.getDeathdate();
 
@@ -141,13 +149,6 @@ public class HumanServiceImpl implements HumanService {
             }
         }
 
-        Human human = humanRepository.findById(humanCreateDto.getId()).orElse(null);
-        if(human==null){
-            throw new NoSuchHumanException("Not found human with id = " + humanCreateDto.getId());
-        }
-        if(!(human.getAuthor().equals(me) || me == null)){
-            throw new NoSuchHumanException("You are not author for this human. Please ask admin for change info");
-        }
         String x;
         Long y;
         Calendar d;

@@ -33,7 +33,7 @@ public class HumanRestControllerV1 {
     }
 
     @GetMapping("/{id}") //Получить информацию о человеке
-    public ResponseEntity<HumanDto> getHumanInfo(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
+    public ResponseEntity<HumanDto> getHumanInfo(@PathVariable Long id){
         Human human = humanService.getHuman(id);
         HumanDto humanDto = HumanConverter.toHumanDto(human);
         return new ResponseEntity<>(humanDto, HttpStatus.OK);

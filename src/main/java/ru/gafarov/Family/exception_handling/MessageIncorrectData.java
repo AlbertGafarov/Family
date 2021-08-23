@@ -1,16 +1,10 @@
 package ru.gafarov.Family.exception_handling;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class MessageIncorrectData {
-    String info;
-
-    public MessageIncorrectData() {
-    }
-
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info;
-    }
+    private String info;
 }

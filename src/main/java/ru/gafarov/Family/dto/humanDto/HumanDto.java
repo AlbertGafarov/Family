@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import ru.gafarov.Family.dto.birthplaceDto.BirthplaceShortDto;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -15,7 +16,7 @@ public class HumanDto extends HumanShortDto implements Comparable<HumanDto>{
 
     protected String deathdate;
 
-    protected String birthplace;
+    protected BirthplaceShortDto birthplaceShortDto;
 
     protected String gender;
 

@@ -28,15 +28,10 @@ import java.util.Locale;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-
     private final UserRepository userRepository;
-
     private final RoleRepository roleRepository;
-
     private final BCryptPasswordEncoder passwordEncoder;
-
     private final JwtTokenProvider jwtTokenProvider;
-
     private final Transcript transcript;
 
     @Autowired
@@ -97,12 +92,6 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    @Override
-    public void deleteById(Long id) throws EmptyResultDataAccessException {
-        userRepository.deleteById(id);
-        log.info("IN delete - user with id: {} successfully deleted", id);
-
-    }
 
     @Override
     public Long getMyId(String token) {
@@ -178,7 +167,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(User user) {
-        deleteById(user.getId());
+    public void deleteById(Long id, User me) throws EmptyResultDataAccessException {
+        if(me == null) {
+            userRepository.deleteById(id);
+            log.info("IN deleteById() - user with id: {} successfully deleted from database", id);
+        } else {
+            User user = findById(id);
+            user.setStatus(Status.DELETED);
+            user.setUpdated(new Date());
+            userRepository.save(user);
+            log.info("IN deleteById() - user with id: {} successfully marked deleted", id);
+        }
     }
 }

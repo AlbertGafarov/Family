@@ -352,4 +352,25 @@
     <changeSet id="1.0.27" author="albert_gafarov">
         <addNotNullConstraint tableName="humans" columnName="author_id"/>
     </changeSet>
+    <changeSet id="1.0.28" author="albert_gafarov">
+        <addColumn tableName="birthplaces">
+            <column name="author_id"
+                    type="integer">
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="birthplaces"
+                                 baseColumnNames="author_id"
+                                 constraintName="birthplace_author"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.29" author="albert_gafarov">
+        <addNotNullConstraint tableName="birthplaces" columnName="author_id"/>
+    </changeSet>
+    <changeSet id="1.0.30" author="albert_gafarov">
+        <addUniqueConstraint tableName="birthplaces" columnNames="birthplace, status"/>
+    </changeSet>
+    <changeSet id="1.0.31" author="albert_gafarov">
+        <addUniqueConstraint tableName="birthplaces" columnNames="guid, status"/>
+    </changeSet>
 </databaseChangeLog>

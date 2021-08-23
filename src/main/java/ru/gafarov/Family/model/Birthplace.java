@@ -5,9 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -21,10 +20,9 @@ public class Birthplace extends BaseEntity {
     private String birthplace;
 
     @Column(name = "guid")
-    private String guid;
+    private UUID guid;
 
-    @Override
-    public String toString() {
-        return birthplace;
-    }
+    @ManyToOne()
+    @JoinColumn(name = "author_id")
+    private User author;
 }

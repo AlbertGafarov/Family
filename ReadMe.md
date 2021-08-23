@@ -119,6 +119,8 @@ Response:
 
 ###1.6. Удаление самого себя ☠
 
+Фактически запись в БД получает статус DELETED. Запись в этом статусе не будет отображаться для роли ROLE_USER.
+
 Request:
 
     DELETE /api/v1/users
@@ -283,6 +285,7 @@ Response:
 ###2.5 Изменить данные о человеке ✏
 
 Данные в записи о человеке может изменить только автор записи.
+
 Request:
 
     PUT /api/v1/admin/humans
@@ -420,38 +423,137 @@ Response:
         "size": int, // размер файла в байтах
         "imageResolution": string // разрешение файла
     }
-
-##5. Администратор 😎
-
-###5.1 Удалить пользователя ☠
+##5. Место рождения
+###5.1 Получить место рождения:
 
 Request:
 
-    DELETE /api/v1/admin/users/{id}
+    GET /api/v1/birthplaces/{id} // id - Идентификатор места рождения
     Headers:
         Authorization: Bearer_{token}
 Response:
 
     Body:
     {
-        "message": "User successfully deleted"
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
     }
 
-###5.2 Удалить человека ☠
+###5.2 Добавить место рождения:
 
 Request:
 
-    DELETE /api/v1/admin/humans/{id} // id - идентификатор человека
+    POST /api/v1/birthplaces
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "birthplace": string, required
+        "guid": string UUID format, not required
+    }
+
+Response:
+    
+    Body:
+    {
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
+    }
+
+###5.3 Изменить место рождения:
+
+Request:
+
+    PUT /api/v1/birthplaces
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "id": int, required
+        "birthplace": string, required
+        "guid": string UUID format, not required
+    }
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
+    }
+###5.4 Найти место рождения:
+
+Request:
+
+    GET /api/v1/birthplaces/{часть названия} // от 3-х до 30 символов
     Headers:
         Authorization: Bearer_{token}
 Response:
 
     Body:
+    [
+        {
+            "id": int,
+            "birthplace": string
+        },
+        {
+            ...
+        }
+    ]
+###5.5 Удалить место рождения: ☠
+
+Удалить запись может только пользователь, который является автор записи.
+Фактически удаления из БД не происходит, а запись получает статус DELETED. 
+Запись в этом статусе не будет отображаться для роли пользователь.
+
+Request:
+
+    DELETE /api/v1/birthplaces/{id} // id - Идентификатор места рождения
+    Headers:
+        Authorization: Bearer_{token}
+
+Response:
+
     {
-        "message": "Human successfully deleted"
+        "message": "birthplace with id {id} successfully deleted"
     }
 
-###5.3 Изменить данные профиля пользователя ✏
+Response, not found:
+
+    Body:
+    {
+          "info": "Not found birthplace with id: {id}"
+    }
+
+##6. Администратор 😎
+
+###6.1 Получить полную информацию о пользователе:
+
+Request:
+
+    GET /api/v1/admin/users/{id} // id - идентификатор пользователя
+    Headers:
+        Authorization: Bearer_{token}
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "username": string, 
+        "phone": int,
+        "email": string,
+        "roles": [string], from in role-table on last page
+        "password" string, in code xBase64
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+###6.2 Изменить данные профиля пользователя ✏
 
 Администратор может изменить данные профиля пользователя, включая пароль, роль и статус. Таким образом администратор может добавлять новых администраторов.
 
@@ -486,8 +588,76 @@ Response:
         "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
         "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
     }
+###6.3 Удалить пользователя: ☠
 
-## Изменить данные о человеке ✏
+Администратор может удалить запись из БД.
+
+Request:
+
+    DELETE /api/v1/admin/users/{id}
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "message": "User successfully deleted"
+    }
+
+##6.4 Получить полную информацию о человеке:
+
+Request:
+
+    GET /api/v1/admin/humans/{id}
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "id": int,
+        "surname": string,
+        "name": string,
+        "patronim": string,
+        "birthdate": date, as dd.MM.YYYY
+        "deathdate":  date, as dd.MM.YYYY
+        "birthplace": string,
+        "gender": char, 'M' or 'W'
+        "parents": [
+            {
+                "id": int,
+                "surname": string,
+                "name": string,
+                "patronim": string
+            },
+            {
+                ...
+            }
+        ],
+        "children": [
+            {
+                "id": int,
+                "surname": string,
+                "name": string,
+                "patronim": string
+            },
+            {
+                ...
+            }
+        ],
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+
+##6.5 Изменить данные о человеке ✏
 
 Администратор имеет расширенные права на изменение данных о человеке. 
 Дополнительно он может изменить статус и автора записи. 
@@ -559,6 +729,101 @@ Response:
         "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
         "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
     }
+
+###6.6 Удалить человека ☠
+
+Администратор может удалить запись из БД.
+
+Request:
+
+    DELETE /api/v1/admin/humans/{id} // id - идентификатор человека
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "message": "Human successfully deleted"
+    }
+
+##6.7 Получить полную информацию о месте рождения:
+
+Request:
+
+    GET /api/v1/admin/birthplaces/{id} // id - идентификатор места рождения
+    Headers:
+    Authorization: Bearer_{token}
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.8 Изменить информацию о месте рождения:
+
+Администратор имеет расширенные права на изменение данных о месте рождения.
+Дополнительно он может изменить статус и автора записи.
+
+Request:
+
+    PUT /api/v1/admin/birthplaces/{id} // id - идентификатор места рождения
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "id": int, required
+        "birthplace": string, not required
+        "guid": string UUID format, not required
+        "author_id": int,, not required
+        "status": string, from in status-table on last page, not required
+    }
+Response:
+
+    Body:
+    {
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.9 Удалить информацию о месте рождения из БД:
+
+Администратор может удалить запись из БД.
+
+Request:
+
+    DELETE /api/v1/admin/birthplaces/{id} // id - идентификатор места рождения
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "message": "Birthplace with id {id} successfully deleted from database"
+    }
+
 
 ###Roles:
 

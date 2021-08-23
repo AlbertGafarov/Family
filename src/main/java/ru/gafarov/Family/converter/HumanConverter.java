@@ -31,7 +31,7 @@ public class HumanConverter {
         humanDto.setSurname(human.getSurname().toString(human.getGender()));
         }
         if(human.getBirthplace()!=null) {
-            humanDto.setBirthplace(human.getBirthplace().toString());
+            humanDto.setBirthplaceShortDto(BirthplaceConverter.toBirthplaceShortDto(human.getBirthplace()));
         }
         return humanDto;
     }
@@ -68,7 +68,7 @@ public class HumanConverter {
                 .map(HumanConverter::toHumanShortDto)
                 .collect(Collectors.toList()));
         if(human.getBirthplace()!=null) {
-            humanFullDto.setBirthplace(human.getBirthplace().toString());
+            humanFullDto.setBirthplaceShortDto(BirthplaceConverter.toBirthplaceShortDto(human.getBirthplace()));
         }
 
         return humanFullDto;
@@ -81,12 +81,12 @@ public class HumanConverter {
                 .name(human.getName())
                 .surname(human.getSurname().getSurname())
                 .patronim(human.getPatronim())
-                .birthplace(human.getBirthplace().getBirthplace())
+                .birthplaceShortDto(BirthplaceConverter.toBirthplaceShortDto(human.getBirthplace()))
                 .children(human.getChildren().stream().map(HumanConverter::toHumanShortDto).collect(Collectors.toList()))
                 .parents(human.getParents().stream().map(HumanConverter::toHumanShortDto).collect(Collectors.toList()))
                 .gender(human.getGender())
                 .author(UserConverter.toUserDto(human.getAuthor()))
-                .status(human.getStatus().toString())
+                .status(human.getStatus())
                 .created(human.getCreated())
                 .updated(human.getUpdated())
                 .build();

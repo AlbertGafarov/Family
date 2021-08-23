@@ -47,6 +47,7 @@ public class UserRestControllerV1 {
     @GetMapping("/search_user/{partOfName}")
     public ResponseEntity<List<UserDto>> searchPeople(@PathVariable String partOfName
             , @RequestHeader(value = "Authorization") String bearerToken) {
+
         if (partOfName.length() < 3) {
             throw new NoSuchUserException("You entered part of name too short. Please enter more than 2 symbols");
         }
@@ -59,7 +60,6 @@ public class UserRestControllerV1 {
         if (listOfPeople.isEmpty()) {
             throw new NoSuchUserException("There is no people like: " + partOfName);
         }
-
         List<UserDto> listOfPeopleDto = listOfPeople.stream()
                 .filter(user -> !user.equals(me))
                 .map(UserConverter::toUserDto)
@@ -71,12 +71,12 @@ public class UserRestControllerV1 {
 
     @DeleteMapping("") // Удаление самого себя
     public ResponseEntity<Map<String,String>> deleteUser(@RequestHeader(value = "Authorization") String bearerToken){
+
         User user = userService.findMe(bearerToken);
-        userService.delete(user);
+        userService.deleteById(user.getId(), user);
         Map<String,String> map = new HashMap<>();
         map.put("message","User successfully deleted");
         return new ResponseEntity<>(map, HttpStatus.OK);
-
     }
 
     @ExceptionHandler
@@ -91,4 +91,12 @@ public class UserRestControllerV1 {
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<MessageIncorrectData>handleException(IllegalArgumentException exception){
+        MessageIncorrectData message = new MessageIncorrectData();
+        message.setInfo(exception.getMessage());
+        return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+    }
 }
+

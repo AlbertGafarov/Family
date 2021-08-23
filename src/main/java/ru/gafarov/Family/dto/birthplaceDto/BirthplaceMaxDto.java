@@ -1,4 +1,4 @@
-package ru.gafarov.Family.dto.humanDto;
+package ru.gafarov.Family.dto.birthplaceDto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +11,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
-public class HumanMaxDto extends HumanFullDto {
+public class BirthplaceMaxDto extends BirthplaceDto {
 
     private UserDto author;
 

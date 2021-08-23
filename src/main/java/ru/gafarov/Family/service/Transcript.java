@@ -30,6 +30,7 @@ public class Transcript {
                 partOfNameCyrillicLowerCase.append("щ");
                 i += 3;
             } else {
+                //noinspection EnhancedSwitchMigration
                 switch (twoSymbols) {
                     case "jo": partOfNameCyrillicLowerCase.append("ё"); i += 2; break;
                     case "zh": partOfNameCyrillicLowerCase.append("ж"); i += 2; break;
