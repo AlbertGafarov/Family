@@ -6,22 +6,29 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.BirthplaceConverter;
 import ru.gafarov.Family.converter.HumanConverter;
+import ru.gafarov.Family.converter.SurnameConverter;
 import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.birthplaceDto.BirthplaceCreateDto;
 import ru.gafarov.Family.dto.birthplaceDto.BirthplaceMaxDto;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
 import ru.gafarov.Family.dto.humanDto.HumanMaxDto;
+import ru.gafarov.Family.dto.surnameDto.SurnameCreateDto;
+import ru.gafarov.Family.dto.surnameDto.SurnameMaxDto;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserMaxDto;
 import ru.gafarov.Family.exception_handling.*;
 import ru.gafarov.Family.model.Birthplace;
 import ru.gafarov.Family.model.Human;
+import ru.gafarov.Family.model.Surname;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.BirthplaceService;
 import ru.gafarov.Family.service.HumanService;
+import ru.gafarov.Family.service.SurnameService;
 import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
@@ -36,11 +43,13 @@ public class AdminRestControllerV1 {
     private final UserService userService;
     private final HumanService humanService;
     private final BirthplaceService birthplaceService;
+    private final SurnameService surnameService;
 
-    public AdminRestControllerV1(@Autowired UserService userService, @Autowired HumanService humanService, @Autowired BirthplaceService birthplaceService) {
+    public AdminRestControllerV1(@Autowired UserService userService, @Autowired HumanService humanService, @Autowired BirthplaceService birthplaceService, SurnameService surnameService) {
         this.userService = userService;
         this.humanService = humanService;
         this.birthplaceService = birthplaceService;
+        this.surnameService = surnameService;
     }
 
     @GetMapping("/users/{id}") // Получить полную информацию о пользователе
@@ -93,7 +102,7 @@ public class AdminRestControllerV1 {
     }
 
     @GetMapping("/birthplaces/{id}") // Получить полную информацию о месте рождения
-    public ResponseEntity<BirthplaceMaxDto> getBirthPlace(@PathVariable Long id){
+    public ResponseEntity<BirthplaceMaxDto> getBirthplace(@PathVariable Long id){
         Birthplace birthplace = birthplaceService.findById(id);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", "application/json");
@@ -112,6 +121,28 @@ public class AdminRestControllerV1 {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", "application/json");
         return new ResponseEntity<>(new HashMap<>(){{put("message","Birthplace with id " + id + " successfully deleted from database");}}, responseHeaders, HttpStatus.OK);
+    }
+
+    @GetMapping("/surnames/{id}") // Получить полную информацию о месте рождения
+    public ResponseEntity<SurnameMaxDto> getSurname(@PathVariable Long id){
+        Surname surname = surnameService.findById(id);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(SurnameConverter.toSurnameMaxDto(surname), responseHeaders, HttpStatus.OK);
+    }
+    @PutMapping("/surnames") // Изменить любые данные места рождения
+    public ResponseEntity<SurnameMaxDto> updateSurname(@Valid @RequestBody SurnameCreateDto surnameCreateDto){
+        Surname surname = surnameService.changeSurname(surnameCreateDto, null);
+        return new ResponseEntity<>(SurnameConverter.toSurnameMaxDto(surname), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/surnames/{id}") // Удалить место рождения из бд
+    public ResponseEntity<Map<String, String>> deleteSurname(@PathVariable Long id, @RequestHeader HttpHeaders headers){
+        log.info("IN deleteSurname(): Request: DELETE /api/v1/admin/surnames/{} headers: {}", id, headers);
+        surnameService.deleteById(id, null);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(new HashMap<>(){{put("message","Surname with id " + id + " successfully deleted from database");}}, responseHeaders, HttpStatus.OK);
     }
 
     @ExceptionHandler
@@ -167,5 +198,18 @@ public class AdminRestControllerV1 {
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 }

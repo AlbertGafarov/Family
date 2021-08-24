@@ -373,4 +373,28 @@
     <changeSet id="1.0.31" author="albert_gafarov">
         <addUniqueConstraint tableName="birthplaces" columnNames="guid, status"/>
     </changeSet>
+    <changeSet id="1.0.32" author="albert_gafarov">
+        <addColumn tableName="surnames">
+            <column name="author_id"
+                    type="integer">
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="surnames"
+                                 baseColumnNames="author_id"
+                                 constraintName="surnames_author"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.33" author="albert_gafarov">
+        <addUniqueConstraint tableName="surnames" columnNames="surname, status"/>
+    </changeSet>
+    <changeSet id="1.0.34" author="albert_gafarov">
+        <addUniqueConstraint tableName="surnames" columnNames="sur_alias_1, status"/>
+    </changeSet>
+    <changeSet id="1.0.35" author="albert_gafarov">
+        <addUniqueConstraint tableName="surnames" columnNames="sur_alias_2, status"/>
+    </changeSet>
+    <changeSet id="1.0.36" author="albert_gafarov">
+           <addNotNullConstraint tableName="surnames" columnName="author_id"/>
+    </changeSet>
 </databaseChangeLog>

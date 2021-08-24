@@ -5,6 +5,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
@@ -14,6 +15,8 @@ import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -44,11 +47,16 @@ public class RegisterRestControllerV1 {
         return new ResponseEntity<>(data, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<MessageIncorrectData> handleException(MethodArgumentNotValidException exception){
-        MessageIncorrectData data = new MessageIncorrectData();
-        data.setInfo(exception.getLocalizedMessage());
-        exception.printStackTrace();
-        return new ResponseEntity<>(data, HttpStatus.CONFLICT);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 }

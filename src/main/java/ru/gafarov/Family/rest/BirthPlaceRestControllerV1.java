@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.BirthplaceConverter;
 import ru.gafarov.Family.dto.birthplaceDto.BirthplaceCreateDto;
@@ -18,6 +20,7 @@ import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.BirthplaceService;
 import ru.gafarov.Family.service.UserService;
 
+import javax.validation.Valid;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -50,9 +53,12 @@ public class BirthPlaceRestControllerV1 {
     }
 
     @PostMapping("")
-    public ResponseEntity<BirthplaceDto> addBirthPlace(@RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
+    public ResponseEntity<BirthplaceDto> addBirthPlace(@Valid @RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
         if(birthplaceCreateDto.getId()!=null || birthplaceCreateDto.getAuthor_id() != null || birthplaceCreateDto.getStatus() != null){
             throw new ConflictException("You cannot set id, author_id and status");
+        }
+        if(birthplaceCreateDto.getBirthplace()==null){
+            throw new BadRequestException("birthplace is required");
         }
         User me = userService.findMe(bearerToken);
         Birthplace birthplace = birthplaceService.addBirthplace(birthplaceCreateDto, me);
@@ -63,7 +69,7 @@ public class BirthPlaceRestControllerV1 {
     }
 
     @PutMapping("")
-    public ResponseEntity<BirthplaceDto> changeBirthPlace(@RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
+    public ResponseEntity<BirthplaceDto> changeBirthPlace(@Valid @RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
         if(birthplaceCreateDto.getId()==null){
             log.info("in changeBirthPlace(). id is required");
             throw new BadRequestException("id is required");
@@ -153,5 +159,18 @@ public class BirthPlaceRestControllerV1 {
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 }

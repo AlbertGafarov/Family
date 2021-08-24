@@ -3,6 +3,8 @@ package ru.gafarov.Family.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.HumanConverter;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
@@ -17,7 +19,9 @@ import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -100,6 +104,19 @@ public class HumanRestControllerV1 {
         MessageIncorrectData message = new MessageIncorrectData();
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 
 }

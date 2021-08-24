@@ -82,7 +82,7 @@ public class HumanServiceImpl implements HumanService {
         }
         Human human = Human.builder()
             .name(humanCreateDto.getName())
-            .surname(surnameService.getSurname(humanCreateDto.getSurname_id()))
+            .surname(surnameService.findById(humanCreateDto.getSurname_id()))
             .patronim(humanCreateDto.getPatronim())
             .birthdate(birthdate)
             .deathdate(deathdate)
@@ -170,7 +170,7 @@ public class HumanServiceImpl implements HumanService {
             human.setBirthplace(birthplace);
         }
         if((y = humanCreateDto.getSurname_id())!=null){
-            Surname surname = surnameService.getSurname(y);
+            Surname surname = surnameService.findById(y);
             human.setSurname(surname);
         }
         if((d = humanCreateDto.getBirthdate())!=null){
@@ -208,7 +208,7 @@ public class HumanServiceImpl implements HumanService {
         }
         if((previousSurnameIdArray = humanCreateDto.getPrevious_surnames_id())!=null){
             try {
-                List<Surname> previousSurnames = Arrays.stream(previousSurnameIdArray).mapToObj(a -> surnameService.getSurname((long) a)).collect(Collectors.toList());
+                List<Surname> previousSurnames = Arrays.stream(previousSurnameIdArray).mapToObj(a -> surnameService.findById((long) a)).collect(Collectors.toList());
             } catch (NoSuchSurnameException e){
                 throw new NoSuchHumanException(e.getMessage());
             }

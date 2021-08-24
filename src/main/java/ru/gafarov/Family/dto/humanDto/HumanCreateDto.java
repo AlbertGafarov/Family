@@ -9,24 +9,28 @@ import java.util.Calendar;
 @Data
 @JsonIgnoreProperties
 public class HumanCreateDto {
-    @Min(1)
+
+    @Min(value = 1, message = "id cannot be less 1")
     private Long id;
 
-    @NotNull
+    @Pattern(regexp = "[A-ZА-Я][A-ZА-Яа-яa-z\\-]+", message = "surname is not valid")
     @Size(min = 2, message = "name must be more two symbol")
     private String name;
 
-    @NotBlank()
+    @Pattern(regexp = "[A-ZА-Я][A-ZА-Яа-яa-z\\-]+", message = "patronim is not valid")
     @Size(min = 2, message = "patronim must be more two symbol")
     private String patronim;
 
+    @Min(value = 1, message = "surname_id cannot be less 1")
     private Long surname_id;
 
+    @PastOrPresent
     private Calendar birthdate;
 
+    @PastOrPresent
     private Calendar deathdate;
 
-    @Min(1)
+    @Min(value = 1, message = "birthplace_id cannot be less 1")
     private Long birthplace_id;
 
     @NotNull
@@ -35,13 +39,11 @@ public class HumanCreateDto {
 
     private int[] parents_id;
 
-
     private int[] children_id;
-
 
     private int[] previous_surnames_id;
 
-    @Min(1)
+    @Min(value = 1, message = "author_id cannot be less 1")
     private Long author_id;
 
     private String status;
