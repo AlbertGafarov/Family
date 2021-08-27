@@ -11,7 +11,7 @@ import java.util.Date;
 
 @MappedSuperclass
 @Data
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 public class BaseEntity {
     @Id

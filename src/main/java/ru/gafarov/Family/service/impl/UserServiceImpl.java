@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
-import ru.gafarov.Family.exception_handling.NoSuchUserException;
+import ru.gafarov.Family.exception_handling.NotFoundException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
 import ru.gafarov.Family.model.Status;
@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
         User result = userRepository.findById(id).orElse(null);
         if (result == null) {
             log.warn("IN findById - no user found by id: {}", id);
-            throw new NoSuchUserException("There is no user with id " + id);
+            throw new NotFoundException("There is no user with id " + id);
         }
         log.info("IN findById - user: {} found by id: {}", result.getUsername(), id);
         return result;
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
         if(user == null) {
             if ((user = userRepository.findById(userCreateDto.getId()).orElse(null)) == null) {
                 log.error("user not found");
-                throw new NoSuchUserException("user not found");
+                throw new NotFoundException("user not found");
             }
         }
         String x;

@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
+import ru.gafarov.Family.exception_handling.ConflictException;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
-import ru.gafarov.Family.exception_handling.NoSuchUserException;
+import ru.gafarov.Family.exception_handling.NotFoundException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.UserService;
@@ -51,16 +52,16 @@ public class UserRestControllerV1 {
             , @RequestHeader(value = "Authorization") String bearerToken) {
 
         if (partOfName.length() < 3) {
-            throw new NoSuchUserException("You entered part of name too short. Please enter more than 2 symbols");
+            throw new ConflictException("You entered part of name too short. Please enter more than 2 symbols");
         }
         if (partOfName.length() > 15) {
-            throw new NoSuchUserException("Yoy entered part of too long. Please enter less than 15 symbols");
+            throw new ConflictException("Yoy entered part of too long. Please enter less than 15 symbols");
         }
         User me = userService.findMe(bearerToken);
         List<User> listOfPeople = userService.searchPeople(partOfName);
 
         if (listOfPeople.isEmpty()) {
-            throw new NoSuchUserException("There is no people like: " + partOfName);
+            throw new NotFoundException("There is no people like: " + partOfName);
         }
         List<UserDto> listOfPeopleDto = listOfPeople.stream()
                 .filter(user -> !user.equals(me))
@@ -81,12 +82,6 @@ public class UserRestControllerV1 {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<MessageIncorrectData>handleException(NoSuchUserException exception){
-        MessageIncorrectData message = new MessageIncorrectData();
-        message.setInfo(exception.getMessage());
-        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
-    }
     @ExceptionHandler
     public ResponseEntity<MessageIncorrectData>handleException(RegisterException exception){
         MessageIncorrectData message = new MessageIncorrectData();

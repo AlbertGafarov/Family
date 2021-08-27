@@ -385,14 +385,27 @@ Request:
     Multipart body:
         file: JPEG-файл
         date: yyyy-MM-dd // Дата съемки
+        humans_id: string, example 1,2,3,4 // идентификаторы людей на фото через запятую 
 Response:
 
     Body:
     {
         "id": int, // идентификатор фото
         "name": string, // имя файла
+        "photoDate": date
         "size": int, // размер файла в байтах
-        "imageResolution": string // разрешение файла
+        "height": int
+        "width": int
+        "humansOnPhoto": [
+            {
+                "id": int,
+                "surname": string,
+                "name": string,
+                "patronim": string
+            },
+            {
+                ...
+            }
     }
 
 ##4.2 Получить фото
@@ -420,9 +433,108 @@ Response:
     {
         "id": int, // идентификатор фото
         "name": string, // имя файла
+        "photoDate": date
         "size": int, // размер файла в байтах
-        "imageResolution": string // разрешение файла
+        "height": int // высота в пикселях
+        "width": int // ширина в пикселях
+        "humansOnPhoto": [
+            {
+                "id": int,
+                "surname": string,
+                "name": string,
+                "patronim": string
+            },
+            {
+                ...
+            }
     }
+
+##4.4 Получить инфо о фото, на которых отмечен человек:
+
+Request:
+
+    GET /api/v1/photos/humans/{id} // id – идентификатор человека
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    [
+        {
+            "id": int,
+            "name": string",
+            "photoDate": date
+        }
+        {
+            ...
+        }
+    ]
+
+###4.5 Изменить инфо о фото:
+
+Request:
+
+    PUT /api/v1/photos
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "id": int, required
+        "name": string, not required
+        "photoDate": date, not required
+        "size": int, not required // размер файла в байтах
+        "height": int, not required // высота в пикселях
+        "width": int, not required // ширина в пикселях
+        "humans_id": [int] // Идентификаторы людей на фото
+    }
+
+Response:
+
+    Body:
+    {
+        "id": int, // идентификатор фото
+        "name": string, // имя файла
+        "photoDate": date
+        "size": int, // размер файла в байтах
+        "height": int // высота в пикселях
+        "width": int // ширина в пикселях
+        "humansOnPhoto": [
+            {
+                "id": int,
+                "surname": string,
+                "name": string,
+                "patronim": string
+            },
+            {
+                ...
+            }
+    }
+
+###4.6 Удалить фото: ☠
+
+Удалить запись может только пользователь, который является автором записи.
+Фактически удаления из БД не происходит, а запись получает статус DELETED.
+Файл не удаляется. Запись в этом статусе не будет отображаться для роли пользователь.
+
+Request:
+
+    DELETE /api/v1/photos/{id} // id - Идентификатор места рождения
+    Headers:
+        Authorization: Bearer_{token}
+
+Response:
+
+    {
+        "message": "photo with id {id} successfully deleted"
+    }
+
+Response, not found:
+
+    Body:
+    {
+          "info": "Not found photo with id: {id}"
+    }
+
 ##5. Место рождения
 ###5.1 Получить место рождения:
 
@@ -484,6 +596,7 @@ Response:
         "birthplace": string,
         "guid": string UUID format
     }
+
 ###5.4 Найти место рождения:
 
 Request:
@@ -505,7 +618,7 @@ Response:
     ]
 ###5.5 Удалить место рождения: ☠
 
-Удалить запись может только пользователь, который является автор записи.
+Удалить запись может только пользователь, который является автором записи.
 Фактически удаления из БД не происходит, а запись получает статус DELETED. 
 Запись в этом статусе не будет отображаться для роли пользователь.
 
@@ -526,6 +639,126 @@ Response, not found:
     Body:
     {
           "info": "Not found birthplace with id: {id}"
+    }
+
+##Фамилия
+###6.1 Получить фамилию:
+
+Request:
+
+    GET /api/v1/surnames/{id} // id - Идентификатор фамилии
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "id": int,
+        "surname": string, // фамилия
+        "surnameAlias1": string, // другой вариант фамилии
+        "surnameAlias2": string, // другой вариант фамилии
+        "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+    }
+
+###5.2 Добавить фамилию:
+
+Request:
+
+    POST /api/v1/surnames
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "surname": string, only char and "-", required // фамилия
+        "surnameAlias1": string, only char and "-", not required // другой вариант фамилии
+        "surnameAlias2": string, only char and "-", not required // другой вариант фамилии
+        "declension": string, only Y or N, required // Флаг, говорящий о том, склоняется фамилия или нет
+    }
+
+Response:
+    
+    Body:
+    {
+        "id": int,
+        "surname": string, // фамилия
+        "surnameAlias1": string, // другой вариант фамилии
+        "surnameAlias2": string, // другой вариант фамилии
+        "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+    }
+
+###5.3 Изменить фамилию:
+
+Request:
+
+    PUT /api/v1/surnames
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "id": int, required
+        "surname": string, only char and "-" , not required // фамилия
+        "surnameAlias1": string, only char and "-", not required // другой вариант фамилии
+        "surnameAlias2": string, only char and "-", not required // другой вариант фамилии
+        "declension": string, only Y or N, not required // Флаг, говорящий о том, склоняется фамилия или нет
+    }
+
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "surname": string, // фамилия
+        "surnameAlias1": string, // другой вариант фамилии
+        "surnameAlias2": string, // другой вариант фамилии
+        "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+    }
+
+###5.4 Найти фамилию:
+Позволяет пользователю найти фамилию в базе по части фамилии независимо от регистра, транскрипции, смягчающих или твердых знаков.
+Request:
+
+    GET /api/v1/surnames/{часть фамилии} // от 3-х до 30 символов
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    [
+        {
+            "id": int,
+            "surname": string, // фамилия
+            "surnameAlias1": string, // другой вариант фамилии
+            "surnameAlias2": string, // другой вариант фамилии
+            "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+        },
+        {
+            ...
+        }
+    ]
+###5.5 Удалить фамилию: ☠
+
+Удалить запись может только пользователь, который является автором записи.
+Фактически удаления из БД не происходит, а запись получает статус DELETED. 
+Запись в этом статусе не будет отображаться для роли пользователь.
+
+Request:
+
+    DELETE /api/v1/surnames/{id} // id - Идентификатор места рождения
+    Headers:
+        Authorization: Bearer_{token}
+
+Response:
+
+    {
+        "message": "surname with id {id} successfully deleted"
+    }
+
+Response, not found:
+
+    Body:
+    {
+          "info": "Not found surnames with id: {id}"
     }
 
 ##6. Администратор 😎
@@ -822,6 +1055,214 @@ Response:
     Body:
     {
         "message": "Birthplace with id {id} successfully deleted from database"
+    }##6.7 Получить полную информацию о месте рождения:
+
+Request:
+
+    GET /api/v1/admin/birthplaces/{id} // id - идентификатор места рождения
+    Headers:
+    Authorization: Bearer_{token}
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "birthplace": string,
+        "guid": string UUID format
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.10 Получить полную информацию о фамилии:
+
+Request:
+
+    GET /api/v1/admin/surnames/{id} // id - идентификатор фамилии
+    Headers:
+    Authorization: Bearer_{token}
+
+Response:
+
+    Body:
+    {
+        "id": int,
+        "surname": string, // фамилия
+        "surnameAlias1": string, // другой вариант фамилии
+        "surnameAlias2": string, // другой вариант фамилии
+        "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.11 Изменить информацию о фамилии:
+
+Администратор имеет расширенные права на изменение данных о месте рождения.
+Дополнительно он может изменить статус и автора записи.
+
+Request:
+
+    PUT /api/v1/admin/surnames/{id} // id - идентификатор фамилии
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+    {
+        "id": int, required
+        "surname": string, only char and "-" , not required // фамилия
+        "surnameAlias1": string, only char and "-", not required // другой вариант фамилии
+        "surnameAlias2": string, only char and "-", not required // другой вариант фамилии
+        "declension": string, only Y or N, not required // Флаг, говорящий о том, склоняется фамилия или нет
+        "author_id": int,, not required
+        "status": string, from in status-table on last page, not required
+    }
+Response:
+
+    Body:
+    {
+        "id": int,
+        "surname": string, // фамилия
+        "surnameAlias1": string, // другой вариант фамилии
+        "surnameAlias2": string, // другой вариант фамилии
+        "declension": string, Y or N // Флаг, говорящий о том, склоняется фамилия или нет
+        
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.12 Удалить информацию о фамилии из БД:
+
+Администратор может удалить запись из БД.
+
+Request:
+
+    DELETE /api/v1/admin/photos/{id} // id - идентификатор фамилии
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "message": "Photo with id {id} successfully deleted from database"
+    }
+
+##6.13 Получить полную информацию о фото:
+
+Request:
+
+    GET /api/v1/admin/photos/{id} // id - идентификатор фамилии
+    Headers:
+    Authorization: Bearer_{token}
+
+Response:
+
+    Body:
+    {
+        "id": int, // идентификатор фото
+        "name": string, // имя файла
+        "photoDate": date
+        "size": int, // размер файла в байтах
+        "height": int // высота в пикселях
+        "width": int // ширина в пикселях
+        "humansOnPhoto": [
+        {
+        "id": int,
+        "surname": string,
+        "name": string,
+        "patronim": string
+        },
+        {
+        ...
+        }
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+
+##6.14 Изменить информацию о фото:
+
+Администратор имеет расширенные права на изменение данных о месте рождения.
+Дополнительно он может изменить статус и автора записи.
+
+Request:
+
+    PUT /api/v1/admin/photos/{id} // id - идентификатор фамилии
+    Headers:
+        Authorization: Bearer_{token}
+    Body:
+
+Response:
+
+    Body:
+    {
+        "id": int, // идентификатор фото
+        "name": string, // имя файла
+        "photoDate": date
+        "size": int, // размер файла в байтах
+        "height": int // высота в пикселях
+        "width": int // ширина в пикселях
+        "humansOnPhoto": [
+        {
+        "id": int,
+        "surname": string,
+        "name": string,
+        "patronim": string
+        },
+        {
+        ...
+        }
+        "author": {
+            "id": int,
+            "username": string,
+            "phone": int, 11 dight, start with 79
+            "email": string
+        },
+        "status": string, from in status-table on last page 
+        "created": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+        "updated": date_time as YYYY-MM-DD'T'HH:mm:ss.sss+HH:mm
+    }
+
+##6.15 Удалить фото из хранилища и запись из БД:
+
+Администратор может удалить запись из БД.
+
+Request:
+
+    DELETE /api/v1/admin/photos/{id} // id - идентификатор фамилии
+    Headers:
+        Authorization: Bearer_{token}
+Response:
+
+    Body:
+    {
+        "message": "Photo with id {id} successfully deleted from database"
     }
 
 

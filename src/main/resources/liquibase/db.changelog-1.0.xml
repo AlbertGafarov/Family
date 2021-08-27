@@ -397,4 +397,28 @@
     <changeSet id="1.0.36" author="albert_gafarov">
            <addNotNullConstraint tableName="surnames" columnName="author_id"/>
     </changeSet>
+    <changeSet id="1.0.37" author="albert_gafarov">
+        <addColumn tableName="photos">
+            <column name="author_id"
+                    type="integer">
+            </column>
+            <column name="height"
+                    type="integer">
+            </column>
+            <column name="width"
+                    type="integer">
+            </column>
+            <column name="size"
+                    type="integer">
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="photos"
+                                 baseColumnNames="author_id"
+                                 constraintName="photos_author"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.38" author="albert_gafarov">
+        <addNotNullConstraint tableName="photos" columnName="author_id"/>
+    </changeSet>
 </databaseChangeLog>

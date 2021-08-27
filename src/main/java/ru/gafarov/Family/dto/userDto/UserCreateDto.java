@@ -27,8 +27,7 @@ public class UserCreateDto {
     private String email;
     private String[] roles;
 
-    @Size(min = 3, message = "password must be more two symbol")
-    @Pattern(regexp = "[^\\s]")
+    @Size(min = 3, max = 64, message = "password must be 3-64 symbol")
     private String password;
 
     private String status;

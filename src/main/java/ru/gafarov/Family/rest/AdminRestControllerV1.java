@@ -9,29 +9,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.gafarov.Family.converter.BirthplaceConverter;
-import ru.gafarov.Family.converter.HumanConverter;
-import ru.gafarov.Family.converter.SurnameConverter;
-import ru.gafarov.Family.converter.UserConverter;
+import ru.gafarov.Family.converter.*;
 import ru.gafarov.Family.dto.birthplaceDto.BirthplaceCreateDto;
 import ru.gafarov.Family.dto.birthplaceDto.BirthplaceMaxDto;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
 import ru.gafarov.Family.dto.humanDto.HumanMaxDto;
+import ru.gafarov.Family.dto.photoDto.PhotoCreateDto;
+import ru.gafarov.Family.dto.photoDto.PhotoMaxDto;
 import ru.gafarov.Family.dto.surnameDto.SurnameCreateDto;
 import ru.gafarov.Family.dto.surnameDto.SurnameMaxDto;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserMaxDto;
 import ru.gafarov.Family.exception_handling.*;
-import ru.gafarov.Family.model.Birthplace;
-import ru.gafarov.Family.model.Human;
-import ru.gafarov.Family.model.Surname;
-import ru.gafarov.Family.model.User;
-import ru.gafarov.Family.service.BirthplaceService;
-import ru.gafarov.Family.service.HumanService;
-import ru.gafarov.Family.service.SurnameService;
-import ru.gafarov.Family.service.UserService;
+import ru.gafarov.Family.model.*;
+import ru.gafarov.Family.service.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,12 +42,15 @@ public class AdminRestControllerV1 {
     private final HumanService humanService;
     private final BirthplaceService birthplaceService;
     private final SurnameService surnameService;
+    private final PhotoService photoService;
 
-    public AdminRestControllerV1(@Autowired UserService userService, @Autowired HumanService humanService, @Autowired BirthplaceService birthplaceService, SurnameService surnameService) {
+    public AdminRestControllerV1(@Autowired UserService userService, @Autowired HumanService humanService, @Autowired BirthplaceService birthplaceService
+            , @Autowired SurnameService surnameService, @Autowired PhotoService photoService) {
         this.userService = userService;
         this.humanService = humanService;
         this.birthplaceService = birthplaceService;
         this.surnameService = surnameService;
+        this.photoService = photoService;
     }
 
     @GetMapping("/users/{id}") // Получить полную информацию о пользователе
@@ -65,7 +66,7 @@ public class AdminRestControllerV1 {
             , @RequestHeader Map<String, String> headers){
         log.info("IN updateUser(): Request: PUT /api/v1/admin/users \r\n\tHeaders = {} \r\n\tBody = {}", headers, userCreateDto);
         if(userCreateDto.getId()==null){
-            throw new NoSuchUserException("id is required");
+            throw new ConflictException("id is required");
         }
         User user = userService.changeUserInfo(null, userCreateDto);
         UserMaxDto userMaxDto = UserConverter.toUserMaxDto(user);
@@ -82,7 +83,7 @@ public class AdminRestControllerV1 {
 
     @GetMapping("/humans/{id}") // Получить полную информацию о пользователе
     public ResponseEntity<HumanMaxDto> getHuman(@PathVariable Long id){
-        Human human = humanService.getHuman(id);
+        Human human = humanService.findById(id);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", "application/json");
         return new ResponseEntity<>(HumanConverter.toHumanMaxDto(human), responseHeaders, HttpStatus.OK);
@@ -97,7 +98,7 @@ public class AdminRestControllerV1 {
     @DeleteMapping("/humans/{id}") // Удалить человека из бд
     public ResponseEntity<Map<String, String>> deleteHuman(@PathVariable Long id){
         log.info("IN deleteHuman(): Request: DELETE /api/v1/admin/humans/{}", id);
-        humanService.deleteById(id);
+        humanService.deleteById(id, null);
         return new ResponseEntity<>(new HashMap<>(){{put("message","Human successfully deleted");}}, HttpStatus.OK);
     }
 
@@ -111,7 +112,9 @@ public class AdminRestControllerV1 {
     @PutMapping("/birthplaces") // Изменить любые данные места рождения
     public ResponseEntity<BirthplaceMaxDto> updateBirthplace(@Valid @RequestBody BirthplaceCreateDto birthplaceCreateDto){
         Birthplace birthplace = birthplaceService.changeBirthplace(birthplaceCreateDto, null);
-        return new ResponseEntity<>(BirthplaceConverter.toBirthplaceMaxDto(birthplace), HttpStatus.OK);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(BirthplaceConverter.toBirthplaceMaxDto(birthplace), responseHeaders, HttpStatus.OK);
     }
 
     @DeleteMapping("/birthplaces/{id}") // Удалить место рождения из бд
@@ -133,7 +136,9 @@ public class AdminRestControllerV1 {
     @PutMapping("/surnames") // Изменить любые данные места рождения
     public ResponseEntity<SurnameMaxDto> updateSurname(@Valid @RequestBody SurnameCreateDto surnameCreateDto){
         Surname surname = surnameService.changeSurname(surnameCreateDto, null);
-        return new ResponseEntity<>(SurnameConverter.toSurnameMaxDto(surname), HttpStatus.OK);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(SurnameConverter.toSurnameMaxDto(surname), responseHeaders, HttpStatus.OK);
     }
 
     @DeleteMapping("/surnames/{id}") // Удалить место рождения из бд
@@ -143,6 +148,51 @@ public class AdminRestControllerV1 {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", "application/json");
         return new ResponseEntity<>(new HashMap<>(){{put("message","Surname with id " + id + " successfully deleted from database");}}, responseHeaders, HttpStatus.OK);
+    }
+
+    @GetMapping("/photos/{id}/info") // Получить полную информацию о фото
+    public ResponseEntity<PhotoMaxDto> getPhoto(@PathVariable Long id) {
+        Photo photo = photoService.findById(id);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(PhotoConverter.toPhotoMaxDto(photo), responseHeaders, HttpStatus.OK);
+    }
+
+    @GetMapping("/photos/{id}") // Получить любой файл фото
+    public void getPhotoFile(@PathVariable(name = "id") Long id, HttpServletResponse response
+            , @RequestHeader(value = "Authorization") String bearerToken){
+        Photo photo = photoService.findById(id);
+        File photoFile = photoService.getPhotoFile(id);
+        Path path = photoFile.toPath();
+        if(Files.exists(path)){
+            response.setHeader("Content-Disposition", "attachment;filename=" + photo.getName());
+            response.setContentType("image/jpeg");
+        } else {
+            throw new NotFoundException("Not found file " + path);
+        }
+        try {
+            Files.copy(path, response.getOutputStream());
+            response.getOutputStream().flush();
+        } catch (IOException e) {
+            throw new RuntimeException("IOError writing file to output stream");
+        }
+    }
+
+    @PutMapping("/photos") // Изменить любые данные места рождения
+    public ResponseEntity<PhotoMaxDto> updatePhoto(@Valid @RequestBody PhotoCreateDto photoCreateDto){
+        Photo photo = photoService.changePhoto(photoCreateDto, null);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(PhotoConverter.toPhotoMaxDto(photo), responseHeaders, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/photos/{id}") // Удалить место рождения из бд и файл из хранилища
+    public ResponseEntity<Map<String, String>> deletePhoto(@PathVariable Long id, @RequestHeader HttpHeaders headers){
+        log.info("IN deletePhoto(): Request: DELETE /api/v1/admin/photos/{} headers: {}", id, headers);
+        photoService.deleteById(id, null);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Type", "application/json");
+        return new ResponseEntity<>(new HashMap<>(){{put("message","Photo with id " + id + " successfully deleted from database");}}, responseHeaders, HttpStatus.OK);
     }
 
     @ExceptionHandler
@@ -186,18 +236,6 @@ public class AdminRestControllerV1 {
         message.setInfo(exception.getMessage());
         return new ResponseEntity<>(message, HttpStatus.CONFLICT);
 
-    }
-    @ExceptionHandler
-    public ResponseEntity<MessageIncorrectData>handleException(NoSuchUserException exception){
-        MessageIncorrectData message = new MessageIncorrectData();
-        message.setInfo(exception.getMessage());
-        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
-    }
-    @ExceptionHandler
-    public ResponseEntity<MessageIncorrectData>handleException(NoSuchHumanException exception){
-        MessageIncorrectData message = new MessageIncorrectData();
-        message.setInfo(exception.getMessage());
-        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

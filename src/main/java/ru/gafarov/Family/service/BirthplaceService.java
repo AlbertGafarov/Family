@@ -11,8 +11,6 @@ public interface BirthplaceService {
     Birthplace findById(Long id);
     Birthplace addBirthplace(BirthplaceCreateDto birthplaceCreateDto, User me);
     Birthplace changeBirthplace(BirthplaceCreateDto birthplaceCreateDto, User me);
-
     void deleteById(Long id, User me);
-
     List<Birthplace> searchBirthplaces(String partOfName);
 }

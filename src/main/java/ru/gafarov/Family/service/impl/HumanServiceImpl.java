@@ -2,20 +2,21 @@ package ru.gafarov.Family.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.gafarov.Family.converter.HumanConverter;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
-import ru.gafarov.Family.dto.humanDto.HumanDto;
 import ru.gafarov.Family.dto.humanDto.HumanFullDto;
-import ru.gafarov.Family.exception_handling.NoSuchHumanException;
-import ru.gafarov.Family.exception_handling.NoSuchSurnameException;
-import ru.gafarov.Family.exception_handling.NoSuchUserException;
+import ru.gafarov.Family.exception_handling.ConflictException;
+import ru.gafarov.Family.exception_handling.ForbiddenException;
+import ru.gafarov.Family.exception_handling.NotFoundException;
 import ru.gafarov.Family.model.*;
 import ru.gafarov.Family.repository.HumanRepository;
 import ru.gafarov.Family.service.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,25 +39,16 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public Human getHuman(Long id) {
-        Human human;
-        Optional<Human> opt = humanRepository.findById(id);
-        if (opt.isPresent()){
-            human = opt.get();
-        } else {
-            throw new NoSuchHumanException("Не найден человек с id: " + id);
+    public Human findById(Long id) throws NotFoundException {
+        Human human = humanRepository.findById(id).orElse(null);
+        if (human == null){
+            throw new NotFoundException("Not found human with id: " + id);
         }
-
         return human;
     }
-
     @Override
-    public List<HumanDto> getAllHumansDto() {
-        List<Human> humanList = humanRepository.findAll();
-        return humanList.stream()
-                .map(HumanConverter::toHumanDto)
-                .sorted()
-                .collect(Collectors.toList());
+    public List<Human> getAllHumans() {
+        return humanRepository.findAll();
     }
 
     @Override
@@ -67,17 +59,17 @@ public class HumanServiceImpl implements HumanService {
 
         if (birthdate != null){
             if(birthdate.after(new Date())) {
-                throw new NoSuchHumanException("birthdate cannot be earlier then today");
+                throw new ConflictException("birthdate cannot be earlier then today");
             }
         }
         if (deathdate != null){
             if(deathdate.after(new Date())) {
-                throw new NoSuchHumanException("deathdate cannot be earlier then today");
+                throw new ConflictException("deathdate cannot be earlier then today");
             }
         }
         if(birthdate != null && deathdate != null){
             if(birthdate.after(deathdate)){
-                throw new NoSuchHumanException("birthdate cannot be after deathdate");
+                throw new ConflictException("birthdate cannot be after deathdate");
             }
         }
         Human human = Human.builder()
@@ -87,15 +79,15 @@ public class HumanServiceImpl implements HumanService {
             .birthdate(birthdate)
             .deathdate(deathdate)
             .birthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()))
-            .children(Arrays.stream(humanCreateDto.getChildren_id()).mapToObj(a -> getHuman((long) a)).peek(a -> {
+            .children(Arrays.stream(humanCreateDto.getChildren_id()).mapToObj(a -> findById((long) a)).peek(a -> {
                         if(a.getBirthdate().before(birthdate)){
-                            throw new NoSuchHumanException("child cannot be elder than human");
+                            throw new ConflictException("child cannot be elder than human");
                         }
                     }
             ).collect(Collectors.toList()))
-            .parents(Arrays.stream(humanCreateDto.getParents_id()).mapToObj(a -> getHuman((long) a)).peek(a -> {
+            .parents(Arrays.stream(humanCreateDto.getParents_id()).mapToObj(a -> findById((long) a)).peek(a -> {
                 if(a.getBirthdate().after(birthdate)){
-                    throw new NoSuchHumanException("parent cannot be younger then human");
+                    throw new ConflictException("parent cannot be younger then human");
                 }
             }).collect(Collectors.toList()))
             .gender(humanCreateDto.getGender())
@@ -120,14 +112,14 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public Human changeHumanInfo(HumanCreateDto humanCreateDto, User me) throws NoSuchHumanException { //Изменить информацию о человеке
+    public Human changeHumanInfo(HumanCreateDto humanCreateDto, User me) throws NotFoundException { //Изменить информацию о человеке
 
         Human human = humanRepository.findById(humanCreateDto.getId()).orElse(null); // Получаем человека из БД
         if(human==null){ // Если человек не найден, бросаем эксепшн
-            throw new NoSuchHumanException("Not found human with id = " + humanCreateDto.getId());
+            throw new NotFoundException("Not found human with id = " + humanCreateDto.getId());
         }
         if(!(human.getAuthor().equals(me) || me == null)){
-            throw new NoSuchHumanException("You are not author for this human. Please ask admin for change info");
+            throw new ForbiddenException("You are not author for this human. Please ask admin for change info");
         }
 
         Calendar birthdate = humanCreateDto.getBirthdate();
@@ -135,17 +127,17 @@ public class HumanServiceImpl implements HumanService {
 
         if (birthdate != null){
             if(birthdate.after(new Date())) {
-                throw new NoSuchHumanException("birthdate cannot be earlier then today");
+                throw new ConflictException("birthdate cannot be earlier then today");
             }
         }
         if (deathdate != null){
             if(deathdate.after(new Date())) {
-                throw new NoSuchHumanException("deathdate cannot be earlier then today");
+                throw new ConflictException("deathdate cannot be earlier then today");
             }
         }
         if(birthdate != null && deathdate != null){
             if(birthdate.after(deathdate)){
-                throw new NoSuchHumanException("birthdate cannot be after deathdate");
+                throw new ConflictException("birthdate cannot be after deathdate");
             }
         }
 
@@ -182,11 +174,11 @@ public class HumanServiceImpl implements HumanService {
         if((childrenIdArray = humanCreateDto.getChildren_id())!=null){
             List<Human> children = Arrays.stream(childrenIdArray).mapToObj(a -> humanRepository.findById((long) a).orElse(null)).peek(a -> {
                 if(a == null){
-                    throw new NoSuchHumanException("Cannot found one or more children with id from this array" + Arrays.toString(childrenIdArray));
+                    throw new NotFoundException("Cannot found one or more children with id from this array" + Arrays.toString(childrenIdArray));
                 }
                 if (a.getBirthdate()!=null && human.getBirthdate() != null){
                     if(a.getBirthdate().before(human.getBirthdate())){
-                        throw new NoSuchHumanException("Child cannot be elder then human");
+                        throw new ConflictException("Child cannot be elder then human");
                     }
                 }
             }).collect(Collectors.toList());
@@ -196,30 +188,21 @@ public class HumanServiceImpl implements HumanService {
         if ((parentIdArray = humanCreateDto.getParents_id()) != null) {
             List<Human> parents = Arrays.stream(parentIdArray).mapToObj(a -> humanRepository.findById((long) a).orElse(null)).peek(a -> {
                 if (a == null) {
-                    throw new NoSuchHumanException("Cannot found one or more parents with id from this array" + Arrays.toString(parentIdArray));
+                    throw new NotFoundException("Cannot found one or more parents with id from this array" + Arrays.toString(parentIdArray));
                 }
                 if (a.getBirthdate() != null && human.getBirthdate() != null) {
                     if (a.getBirthdate().after(human.getBirthdate())) {
-                        throw new NoSuchHumanException("parent cannot be younger then human");
+                        throw new ConflictException("parent cannot be younger then human");
                     }
                 }
             }).collect(Collectors.toList());
             human.setParents(parents);
         }
         if((previousSurnameIdArray = humanCreateDto.getPrevious_surnames_id())!=null){
-            try {
-                List<Surname> previousSurnames = Arrays.stream(previousSurnameIdArray).mapToObj(a -> surnameService.findById((long) a)).collect(Collectors.toList());
-            } catch (NoSuchSurnameException e){
-                throw new NoSuchHumanException(e.getMessage());
-            }
+            List<Surname> previousSurnames = Arrays.stream(previousSurnameIdArray).mapToObj(a -> surnameService.findById((long) a)).collect(Collectors.toList());
         }
         if((y = humanCreateDto.getAuthor_id()) != null) {
-            User author;
-            try {
-                author = userService.findById(y);
-            } catch (NoSuchUserException e) {
-                throw new NoSuchHumanException(e.getMessage());
-            }
+            User author= userService.findById(y);
             human.setAuthor(author);
         }
         if((x = humanCreateDto.getStatus()) != null){
@@ -233,7 +216,21 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public void deleteById(Long id) throws EmptyResultDataAccessException {
-        humanRepository.deleteById(id);
+    public void deleteById(Long id, User me) {
+        Human human = findById(id);
+        if(me != null){
+            if (!human.getStatus().equals(Status.ACTIVE)){
+                log.info("in deleteById(). Not found exception, because status = {}", human.getStatus());
+                throw new NotFoundException("Not found human with id: " + id);
+            }
+            else if (!human.getAuthor().equals(me)){
+                log.info("in deleteById(). You are not author human with id = {}, so you cannot delete this", human.getId());
+                throw new ConflictException("You are not author human with id:" + human.getId() + ", so you cannot delete this");
+            }
+            human.setStatus(Status.DELETED);
+            humanRepository.save(human); // Если удаляет пользователь, то запись помечается удаленной
+        } else {
+            humanRepository.deleteById(id); // Если удаляет админ, то запись удаляется из бд.
+        }
     }
 }

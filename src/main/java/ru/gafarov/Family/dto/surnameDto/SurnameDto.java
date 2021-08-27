@@ -8,12 +8,8 @@ import lombok.experimental.SuperBuilder;
 public class SurnameDto {
 
     private Long id;
-
     private String surname;
-
     private String surnameAlias1;
-
     private String surnameAlias2;
-
     private String declension;
 }

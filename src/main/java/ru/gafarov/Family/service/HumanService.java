@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface HumanService {
 
-    Human getHuman(Long id);
+    Human findById(Long id);
 
-    List<HumanDto> getAllHumansDto();
+    List<Human> getAllHumans();
 
     HumanFullDto addHuman(HumanCreateDto humanCreateDto, User me);
 
@@ -20,5 +20,5 @@ public interface HumanService {
 
     Human changeHumanInfo(HumanCreateDto humanCreateDto, User me);
 
-    void deleteById(Long id);
+    void deleteById(Long id, User me);
 }

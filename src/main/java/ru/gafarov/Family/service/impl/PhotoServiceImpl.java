@@ -1,24 +1,22 @@
 package ru.gafarov.Family.service.impl;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.gafarov.Family.converter.PhotoConverter;
-import ru.gafarov.Family.dto.photoDto.ChangePhotoDto;
-import ru.gafarov.Family.dto.photoDto.FullPhotoDto;
-import ru.gafarov.Family.dto.photoDto.PhotoDto;
-import ru.gafarov.Family.exception_handling.NoSuchHumanException;
-import ru.gafarov.Family.exception_handling.PhotoFileException;
+import ru.gafarov.Family.dto.photoDto.PhotoCreateDto;
+import ru.gafarov.Family.exception_handling.ConflictException;
+import ru.gafarov.Family.exception_handling.ForbiddenException;
+import ru.gafarov.Family.exception_handling.NotFoundException;
 import ru.gafarov.Family.model.Photo;
 import ru.gafarov.Family.model.Status;
+import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.repository.PhotoRepository;
+import ru.gafarov.Family.service.HumanService;
 import ru.gafarov.Family.service.PhotoService;
+import ru.gafarov.Family.service.UserService;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
@@ -30,55 +28,57 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PhotoServiceImpl implements PhotoService {
 
     private final String ROOT;
-
     private final String PHOTOPATH;
-
     private final PhotoRepository photoRepository;
+    private final HumanService humanService;
+    private final UserService userService;
 
-    private final PhotoConverter photoConverter;
-
-    @Autowired
     public PhotoServiceImpl(@Value(value = "${path.root}") String ROOT
             , @Value(value = "${path.photo}") String PHOTOPATH
-            , PhotoRepository photoRepository
-            , PhotoConverter photoConverter) {
+            , @Autowired PhotoRepository photoRepository, @Autowired HumanService humanService, @Autowired UserService userService) {
         this.ROOT = ROOT;
         this.PHOTOPATH = PHOTOPATH;
         this.photoRepository = photoRepository;
-        this.photoConverter = photoConverter;
+        this.humanService = humanService;
+        this.userService = userService;
     }
 
     @Override
-    public PhotoDto save(MultipartFile file, Date photoDate) throws IOException { // Добавление инфо о фото в базу данных + сохранение файл в файловом хранилище
+    public Photo findById(Long id) {
 
-        Photo photo = Photo.builder().build();
-        String imageResolution; // разрешение изображения
+        Photo photo = photoRepository.findById(id).orElse(null);
+        if (photo == null) {
+            throw new NotFoundException("Not found photo with id " + id);
+        }
+        return photo;
+    }
 
-//Создать папки, если их нет:
+    @Override
+    public Photo save(PhotoCreateDto photoCreateDto, User me) throws IOException { // Добавление инфо о фото в базу данных + сохранение файл в файловом хранилище
+
         Path root = Paths.get(ROOT);
         Path photoFolder = Paths.get(ROOT + PHOTOPATH);
 
-        if(!Files.exists(photoFolder)){
+        if(!Files.exists(photoFolder)){ // Создать папки, если их нет
             if(!Files.exists(root)){
                 Files.createDirectory(root);
-                System.out.println(root + " created");
+                log.info("created folder {}", root);
             }
             Files.createDirectory(photoFolder);
-            System.out.println(photoFolder + " created");
+            log.info("created folder {}", photoFolder);
         }
 
-
-        String fileName = file.getOriginalFilename();
-        long size = file.getSize();
+        String fileName = photoCreateDto.getFile().getOriginalFilename();
 
         String exp = ""; // расширение для файла
         if (fileName != null && fileName.contains(".")) {
@@ -87,51 +87,43 @@ public class PhotoServiceImpl implements PhotoService {
                 throw new IIOException("Not a JPEG file");
             }
         }
-        photo.setName(fileName);
-        photo.setPath(PHOTOPATH);
-        photo.setCreated(new Date());
-        photo.setStatus(Status.ACTIVE);
-        photo.setPhotoDate(photoDate);
-        Photo savedPhoto = photoRepository.save(photo);
 
-        String newFileName = ROOT + savedPhoto.getPath() + savedPhoto.getId() + exp;
+        Photo photo = Photo.builder()
+                .name(fileName)
+                .path(PHOTOPATH)
+                .photoDate(photoCreateDto.getPhotoDate())
+                .humansOnPhoto(Arrays.stream(photoCreateDto.getHumans_id())
+                        .map(humanService::findById)
+                        .peek(a -> {
+                            if(!a.getStatus().equals(Status.ACTIVE)){
+                                throw new NotFoundException("Not found human with id " + a.getId() );
+                            }
+                        }).collect(Collectors.toList()))
+                .created(new Date())
+                .updated(new Date())
+                .status(Status.ACTIVE)
+                .author(me)
+                .size(photoCreateDto.getFile().getSize())
+                .build();
 
-        System.out.println(newFileName);
+        photo = photoRepository.save(photo);
+        String newFileName = ROOT + photo.getPath() + photo.getId() + exp;
+        log.info("in save(). filename = {}", fileName);
+
         try {
-            //Сохранить файл
-            saveFile(file, newFileName);
+            saveFile(photoCreateDto.getFile(), newFileName); //Сохранить файл
         } catch (IOException e) {
-            //Удалить строчку из таблицы, если файл не удалось сохранить в файловой системе.
-            photoRepository.delete(savedPhoto);
+            photoRepository.delete(photo); //Удалить строчку из таблицы, если файл не удалось сохранить в файловой системе.
             throw e;
         }
-// Считываем изображение из сохраненного файла:
-        BufferedImage image = readFromFile(newFileName);
-        //Метаданные изображения не используются пока
-        Metadata metadata = null;
-        try {
-            metadata = ImageMetadataReader.readMetadata(new File(newFileName));
-        } catch (ImageProcessingException e) {
-            e.printStackTrace();
-        }
-        assert metadata != null;
-        for (Directory directory : metadata.getDirectories()) {
-            for (Tag tag : directory.getTags()) {
-                System.out.format("[%s] - %s = %s",
-                        directory.getName(), tag.getTagName(), tag.getDescription());
-            }
-            if (directory.hasErrors()) {
-                for (String error : directory.getErrors()) {
-                    System.err.format("ERROR: %s", error);
-                }
-            }
-        }
-        imageResolution = image.getWidth() + "x" + image.getHeight();
 
-        return new PhotoDto(photo.getId(),fileName,size,imageResolution, photoDate);
+        BufferedImage image = readFromFile(newFileName); // Считываем изображение из сохраненного файла:
+        photo.setHeight(image.getHeight());
+        photo.setWidth(image.getWidth());
+
+        return photoRepository.save(photo);
     }
 
-    @Override
     public void saveFile(MultipartFile file, String newFileName) throws IOException { // Сохранить файл в хранилище
         try (
                 BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(newFileName))
@@ -141,43 +133,95 @@ public class PhotoServiceImpl implements PhotoService {
         }
     }
 
-    @Override
     public BufferedImage readFromFile(String fileName) throws IOException{ // Считать изображение из файла
         return ImageIO.read(new File(fileName));
     }
 
     @Override
-    public Photo getPhoto(Long id) { //Получить фото по id
-        Optional<Photo> optional = photoRepository.findById(id);
-        if(optional.isEmpty()){
-            throw new PhotoFileException("Фото с id " + id + " не найдено");
-        }
-        return optional.get();
-    }
-
-    @Override
     public File getPhotoFile(Long id) { // Получить файл
-        Photo photo = getPhoto(id);
+        Photo photo = findById(id);
         return new File(ROOT + photo.getPath() + id + ".jpg");
     }
 
     @Override
-    public FullPhotoDto changePhoto(ChangePhotoDto changePhotoDto) throws NoSuchHumanException { //Изменить информацию о фото
-        Photo photo = photoConverter.toPhoto(changePhotoDto);
-        Photo savedPhoto = photoRepository.save(photo);
-        return photoConverter.toFullPhotoDto(savedPhoto);
+    public Photo changePhoto(PhotoCreateDto photoCreateDto, User me) throws NotFoundException { //Изменить информацию о фото
+
+        Photo photo = photoRepository.findById(photoCreateDto.getId()).orElse(null);
+        if (photo == null){
+            throw new NotFoundException("photo with id " + photoCreateDto.getId() + " not found");
+        }
+        if (!photo.getStatus().equals(Status.ACTIVE) && me != null){
+            log.info("in changePhoto(). Not found exception, because status = {}", photo.getStatus());
+            throw new NotFoundException("Not found photo with id: " + photo.getId());
+        }
+        if(!photo.getAuthor().equals(me) && me!=null){
+            throw new ForbiddenException("You are not author photo with id = " + photoCreateDto.getId() + ", so you cannot change this");
+        }
+        if (photoCreateDto.getName() != null){
+            photo.setName(photoCreateDto.getName());
+        }
+        if (photoCreateDto.getPhotoDate() != null){
+            photo.setPhotoDate(photoCreateDto.getPhotoDate());
+        }
+        if (photoCreateDto.getHumans_id() != null){
+            photo.setHumansOnPhoto(Arrays.stream(photoCreateDto.getHumans_id())
+                    .map(humanService::findById)
+                    .peek(a -> {
+                        if (a == null) {
+                            throw new NotFoundException("one or more human on photo not found in database");
+                        }
+                        if (!a.getStatus().equals(Status.ACTIVE)){
+                            log.info("in changePhoto(). One human on photo not ACTIVE");
+                            throw new NotFoundException("one or more human on photo not found in database");
+                        }
+                    })
+                    .collect(Collectors.toList()));
+        }
+
+        if(photoCreateDto.getAuthor_id()!=null && me == null){ //Изменить автора может только админ, админ передает: me = null
+            User author = userService.findById(photoCreateDto.getAuthor_id());
+            if (author == null){
+                log.info("author not found with id = {}", photoCreateDto.getAuthor_id());
+                throw new NotFoundException("author with id " + photoCreateDto.getAuthor_id() + "not found");
+            }
+            photo.setAuthor(author);
+        }
+        if(photoCreateDto.getStatus()!=null && me == null){ // Изменить статус может только админ, админ передает: me = null
+            photo.setStatus(Status.valueOf(photoCreateDto.getStatus()));
+        }
+        photo.setUpdated(new Date());
+        return photoRepository.save(photo);
     }
 
     @Override
-    public FullPhotoDto getFullPhotoDto(Long id) { // Получить полную DTO фото по id
-        return photoConverter.toFullPhotoDto(getPhoto(id));
-    }
-
-    @Override
-    public List<PhotoDto> getPhotoByHumanId(Long id) { //получить список фото для человека по id
+    public List<Photo> getPhotoByHumanId(Long id) { //получить список фото для человека по id
         List<Photo> photoList = photoRepository.getPhotoByHumanId(id);
-        return photoList.stream()
-                .map(photoConverter::toPhotoDto)
-                .collect(Collectors.toList());
+        log.info("photoList = {}", photoList.stream().map(PhotoConverter::toPhotoDto));
+        return photoList;
+    }
+
+    @Override
+    public void deleteById(Long id, User me) {
+        Photo photo = findById(id);
+        if(me != null){
+            if (!photo.getStatus().equals(Status.ACTIVE)){
+                log.info("in deleteById(). Not found exception, because status = {}", photo.getStatus());
+                throw new NotFoundException("Not found photo with id: " + id);
+            }
+            else if (!photo.getAuthor().equals(me)){
+                log.info("in deleteById(). You are not author photo with id = {}, so you cannot delete this", photo.getId());
+                throw new ConflictException("You are not author photo with id:" + photo.getId() + ", so you cannot delete this");
+            }
+            photo.setStatus(Status.DELETED);
+            photoRepository.save(photo); // Если удаляет пользователь, то запись помечается удаленной
+        } else {
+            File file =  new File(ROOT + photo.getPath() + id + photo.getName().substring(photo.getName().lastIndexOf(".")));
+            log.info("file {} exist?: {}", file.getAbsoluteFile(), file.exists());
+            if(file.delete()){
+                photoRepository.deleteById(id); // Если удаляет админ, то запись удаляется из бд.
+            } else {
+                throw new ConflictException("some problem with deleting file");
+            }
+        }
     }
 }
