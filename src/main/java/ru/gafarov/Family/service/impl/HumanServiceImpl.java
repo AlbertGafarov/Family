@@ -3,9 +3,7 @@ package ru.gafarov.Family.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gafarov.Family.converter.HumanConverter;
 import ru.gafarov.Family.dto.humanDto.HumanCreateDto;
-import ru.gafarov.Family.dto.humanDto.HumanFullDto;
 import ru.gafarov.Family.exception_handling.ConflictException;
 import ru.gafarov.Family.exception_handling.ForbiddenException;
 import ru.gafarov.Family.exception_handling.NotFoundException;
@@ -13,10 +11,7 @@ import ru.gafarov.Family.model.*;
 import ru.gafarov.Family.repository.HumanRepository;
 import ru.gafarov.Family.service.*;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,7 +47,7 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public HumanFullDto addHuman(HumanCreateDto humanCreateDto, User me) {
+    public Human addHuman(HumanCreateDto humanCreateDto, User me) {
 
         Calendar birthdate = humanCreateDto.getBirthdate();
         Calendar deathdate = humanCreateDto.getDeathdate();
@@ -96,8 +91,7 @@ public class HumanServiceImpl implements HumanService {
             .status(Status.ACTIVE)
             .updated(new Date())
             .build();
-        Human addedHuman = humanRepository.save(human);
-        return HumanConverter.toHumanFullDto(addedHuman);
+        return humanRepository.save(human);
     }
 
     @Override
@@ -109,6 +103,46 @@ public class HumanServiceImpl implements HumanService {
         log.info("IN toLatin result: {}", partOfNameLowerLatin);
 
         return humanRepository.searchHuman(partOfName, partOfNameLowerCyrillic, partOfNameLowerLatin);
+    }
+
+    @Override
+    public List<Human> getBrothersAndSisters(Human human, int n) {
+        if(n!=1) {
+            return getFamily(human, n).get(0);
+        } else {
+            return getFamily(human,1).get(0).stream().filter(a -> !a.equals(human)).collect(Collectors.toList());
+        }
+    }
+
+    private Map<Integer, List<Human>> getFamily(Human human, int n) {
+
+        List<Human> ancestors = new ArrayList<>(); // Предки
+        Map<Integer, List<Human>> family = new HashMap<>(); // Вся семья, где Integer - это поколение
+        family.put(0, new ArrayList<>(){{ add(human);}}); // Нулевое поколение - это сам человек
+        ancestors.add(human);
+
+        for (int i = 1; i <= n; i++){
+            ancestors = ancestors.stream()
+                    .flatMap(a -> a.getParents().stream())
+                    .filter(a -> a.getStatus().equals(Status.ACTIVE))
+                    .distinct()
+                    .collect(Collectors.toList());
+            family.put(-i, ancestors); // добавляем в мап предков с индексом "-i", родители: -1, бабушки, дедушки -2, и.т.д
+        }
+        List<Human> descendants = ancestors.stream(). // Потомки
+                flatMap(a -> a.getChildren().stream())
+                .distinct()
+                .filter(a -> !family.get(-(n-1)).contains(a)) // Отбираем, среди детей предков, только не прямых предков
+                .collect(Collectors.toList());
+        family.put(n - 1, descendants); // добавляем в мап предков с индексом "i", братья и сестры: 1, дяди и тети: 2, не родные бабушки, дедушки 3, и.т.д
+        for (int i = n - 2; i >=0; i--){
+            descendants = descendants.stream().flatMap(a -> a.getChildren().stream())
+                    .filter(a -> a.getStatus().equals(Status.ACTIVE))
+                    .distinct()
+                    .collect(Collectors.toList());
+            family.put(i, descendants);
+        }
+        return family;
     }
 
     @Override

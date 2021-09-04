@@ -20,10 +20,7 @@ import ru.gafarov.Family.service.HumanService;
 import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -74,15 +71,70 @@ public class HumanRestControllerV1 {
         return new ResponseEntity<>(humanFullDto, HttpStatus.OK);
     }
 
+    @GetMapping("/parents/{id}")
+    public ResponseEntity<List<HumanDto>> getParents(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
+        Human human = humanService.findById(id);
+        if(!human.getStatus().equals(Status.ACTIVE)){
+            log.info("human with id {} not found, because status = {}", id, human.getStatus());
+            throw new NotFoundException("human with id " + id + " not found");
+        }
+        List<HumanDto> parentsDto = human.getParents().stream().filter(a -> a.getStatus().equals(Status.ACTIVE)).map(HumanConverter::toHumanDto).collect(Collectors.toList());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        return new ResponseEntity<>(parentsDto, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/children/{id}")
+    public ResponseEntity<List<HumanDto>> getChildren(@PathVariable Long id, @RequestHeader(value = "Authorization") String bearerToken){
+        Human human = humanService.findById(id);
+        if(!human.getStatus().equals(Status.ACTIVE)){
+            log.info("human with id {} not found, because status = {}", id, human.getStatus());
+            throw new NotFoundException("human with id " + id + " not found");
+        }
+        List<HumanDto> chidrenDto = human.getChildren().stream().filter(a -> a.getStatus().equals(Status.ACTIVE)).map(HumanConverter::toHumanDto).collect(Collectors.toList());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        return new ResponseEntity<>(chidrenDto, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/brother-and-sisters/{id}/{n}/{gender}") // n - степень родства. Например 2 - это "двоюрдные"
+    public ResponseEntity<List<HumanDto>> getBrothersAndSisters(@PathVariable(name = "id") Long id
+            , @PathVariable(name = "n") int n
+            , @PathVariable(name = "gender") String gender
+            , @RequestHeader(value = "Authorization") String bearerToken){
+        final String gen = gender.toUpperCase(Locale.ROOT);
+        Human human = humanService.findById(id);
+        if(!human.getStatus().equals(Status.ACTIVE)){
+            log.info("human with id {} not found, because status = {}", id, human.getStatus());
+            throw new NotFoundException("human with id " + id + " not found");
+        }
+        List<HumanDto> brothersAndSistersDto = humanService.getBrothersAndSisters(human, n).stream()
+                .filter(a -> gen.equals("ALL") || a.getGender().equals(gen))
+                .map(HumanConverter::toHumanDto).collect(Collectors.toList());
+        if(brothersAndSistersDto.isEmpty()){
+            if(gen.equals("M")) {
+                throw new NotFoundException("Not found brothers");
+            } else if(gen.equals("W")){
+                throw new NotFoundException("Not found sisters");
+            } else {
+                throw new NotFoundException("Not found brothers and sisters");
+            }
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        return new ResponseEntity<>(brothersAndSistersDto, headers, HttpStatus.OK);
+    }
+
     @PostMapping("") //Добавить человека
     public ResponseEntity<HumanFullDto> addHuman(@Valid @RequestBody HumanCreateDto humanCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
         if(humanCreateDto.getAuthor_id() != null || humanCreateDto.getStatus() != null || humanCreateDto.getId() != null){
             throw new BadRequestException("You cannot set id, author or status for human.");
         }
         User me = userService.findMe(bearerToken);
-        HumanFullDto humanFullDto = humanService.addHuman(humanCreateDto, me);
-
-        return new ResponseEntity<>(humanFullDto, HttpStatus.OK);
+        Human human = humanService.addHuman(humanCreateDto, me);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        return new ResponseEntity<>(HumanConverter.toHumanFullDto(human), headers, HttpStatus.OK);
     }
 
     @GetMapping("/search_human/{partOfName}") // Поиск человека по части имени, фамилии.

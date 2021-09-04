@@ -18,4 +18,14 @@ public interface HumanRepository extends JpaRepository<Human, Long> {
             "or replace(lower(surname),'''','') like %?3% "
             , nativeQuery = true)
     List<Human> searchHuman(String partOfName, String partOfNameLowerCyrilic, String partOfNameLowerLatin);
+
+    @Query(value = "select distinct p.* " +
+            "from humans h " +
+            "join humans_parents hp " +
+            "on h.id = hp.human_id " +
+            "join humans p " +
+            "on hp.parent_id = p.id " +
+            "where h.id = ?1"
+            , nativeQuery = true)
+    List<Human> getParents(Long id);
 }
