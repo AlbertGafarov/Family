@@ -1479,14 +1479,14 @@ Response:
         "message": "Photo with id {id} successfully deleted from database"
     }
 
-###Roles:
+### Roles:
 
 | ROLE | DESCRIPTION |
 |----- | ------------|
 | ROLE_ADMIN | admin |
 | ROLE_USER | user |
 
-###Status:
+### Status:
 
 |STATUS|DESCRIPTION|
 |----- | ----------|
