@@ -3,15 +3,18 @@ package ru.gafarov.Family.rest;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
 import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.exception_handling.MessageIncorrectData;
 import ru.gafarov.Family.exception_handling.RegisterException;
+import ru.gafarov.Family.model.User;
 import ru.gafarov.Family.service.UserService;
 
 import javax.validation.Valid;
@@ -28,9 +31,14 @@ public class RegisterRestControllerV1 {
 
     @PostMapping("/register")
     public ResponseEntity<UserDto> register( @Valid @RequestBody UserCreateDto userCreateDto){
-        UserDto userDto = userService.register(userCreateDto);
         log.info("POST api/v1/register body: {}", userCreateDto);
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
+        User user = userService.register(userCreateDto);
+        log.info("IN register - user: {} successfully registered", user);
+        HttpHeaders headers = new HttpHeaders(){{
+            add("Content-Type", "application/json");
+            add("Charset", "UTF-8");
+        }};
+        return new ResponseEntity<>(UserConverter.toUserDto(user), headers, HttpStatus.OK);
     }
 
     @ExceptionHandler

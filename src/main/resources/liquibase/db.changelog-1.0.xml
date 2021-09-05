@@ -421,4 +421,39 @@
     <changeSet id="1.0.38" author="albert_gafarov">
         <addNotNullConstraint tableName="photos" columnName="author_id"/>
     </changeSet>
+    <changeSet id="1.0.39" author="albert.gafarov">
+        <createTable tableName="stories">
+            <column name="id" type="serial" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="story" type="text" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="stories" baseColumnNames="author_id" constraintName="story_users"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+        <createTable tableName="stories_humans">
+            <column name="human_id" type="integer"/>
+            <column name="story_id" type="integer"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="stories_humans" baseColumnNames="human_id"
+                                 constraintName="stories_humans_humans" referencedTableName="humans"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="stories_humans" baseColumnNames="story_id"
+                                 constraintName="stories_humans_stories" referencedTableName="stories"
+                                 referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>

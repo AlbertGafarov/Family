@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.gafarov.Family.converter.UserConverter;
 import ru.gafarov.Family.dto.userDto.UserCreateDto;
-import ru.gafarov.Family.dto.userDto.UserDto;
 import ru.gafarov.Family.exception_handling.NotFoundException;
 import ru.gafarov.Family.exception_handling.RegisterException;
 import ru.gafarov.Family.model.Role;
@@ -46,25 +44,18 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User register(User user) {
-        Role roleUser = roleRepository.findByName("ROLE_USER");
-        List<Role> userRoles = new ArrayList<>();
-        userRoles.add(roleUser);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(userRoles);
-        user.setStatus(Status.ACTIVE);
-        user.setCreated(new Date());
-        user.setUpdated(new Date());
-        User registeredUser = userRepository.save(user);
-        log.info("IN register - user: {} successfully registered", registeredUser);
-        return registeredUser;
-    }
-
-    @Override
-    public UserDto register(UserCreateDto userCreateDto) throws RegisterException {
-        User user = UserConverter.toUser(userCreateDto);
-        User newUser = register(user);
-        return UserConverter.toUserDto(newUser);
+    public User register(UserCreateDto userCreateDto) {
+        User user = User.builder()
+                .username(userCreateDto.getUsername())
+                .password(passwordEncoder.encode(userCreateDto.getPassword()))
+                .phone(userCreateDto.getPhone())
+                .email(userCreateDto.getEmail())
+                .roles(new ArrayList<>(){{add(roleRepository.findByName("ROLE_USER"));}})
+                .status(Status.ACTIVE)
+                .created(new Date())
+                .updated(new Date())
+                .build();
+        return userRepository.save(user);
     }
 
     @Override
@@ -92,13 +83,12 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-
     @Override
-    public Long getMyId(String token) {
-        String myName = jwtTokenProvider.getUserName(token);
+    public User findMe(String bearerToken) {
+        String myName = jwtTokenProvider.getUserName(bearerToken.substring(7));
         User me = findByUsername(myName);
         log.info("IN getMyId user: {} found", me);
-        return me.getId();
+        return me;
     }
 
     @Override
@@ -145,8 +135,7 @@ public class UserServiceImpl implements UserService {
             }
         }
         user.setUpdated(new Date());
-        user = userRepository.save(user);
-        return user;
+        return userRepository.save(user);
     }
 
     @Override
@@ -159,12 +148,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.searchPeople(partOfName, partOfNameLowerCyrilic, partOfNameLowerLatin);
     }
 
-    @Override
-    public User findMe(String bearerToken) {
-        String token = bearerToken.substring(7);
-        Long myId = getMyId(token);
-        return findById(myId);
-    }
 
     @Override
     public void deleteById(Long id, User me) throws EmptyResultDataAccessException {

@@ -3,13 +3,15 @@ package ru.gafarov.Family.dto.userDto;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Arrays;
 import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Data
-public class UserMaxDto extends UserFullDto {
+public class UserMaxDto extends UserDto {
 
+    private final String[] roles;
     private String password;
     private String status;
     private Date created;
@@ -18,11 +20,11 @@ public class UserMaxDto extends UserFullDto {
     @Override
     public String toString() {
         return "UserMaxDto{" +
-                "password='" + password + '\'' +
+                "roles=" + Arrays.toString(roles) +
+                ", password='" + password + '\'' +
                 ", status='" + status + '\'' +
                 ", created=" + created +
                 ", updated=" + updated +
-                "} parent: " + super.toString();
+                "} " + super.toString();
     }
-
 }

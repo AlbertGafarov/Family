@@ -10,12 +10,9 @@ import java.util.List;
 public interface UserService {
 
     List<User> getAll();
-
     User findByUsername(String username);
-    User register(User user);
-    UserDto register(UserCreateDto userCreateDto) throws RegisterException;
+    User register(UserCreateDto userCreateDto);
     User findById(Long id);
-    Long getMyId(String token);
     User changeUserInfo(User me, UserCreateDto userCreateDto);
     List<User> searchPeople(String partOfName);
     User findMe(String bearerToken);

@@ -68,29 +68,33 @@ public class HumanServiceImpl implements HumanService {
             }
         }
         Human human = Human.builder()
-            .name(humanCreateDto.getName())
-            .surname(surnameService.findById(humanCreateDto.getSurname_id()))
-            .patronim(humanCreateDto.getPatronim())
-            .birthdate(birthdate)
-            .deathdate(deathdate)
-            .birthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()))
-            .children(Arrays.stream(humanCreateDto.getChildren_id()).mapToObj(a -> findById((long) a)).peek(a -> {
-                        if(a.getBirthdate().before(birthdate)){
-                            throw new ConflictException("child cannot be elder than human");
+                .name(humanCreateDto.getName())
+                .surname(surnameService.findById(humanCreateDto.getSurname_id()))
+                .patronim(humanCreateDto.getPatronim())
+                .birthdate(birthdate)
+                .deathdate(deathdate)
+                .birthplace(birthplaceService.findById(humanCreateDto.getBirthplace_id()))
+                .children(Arrays.stream(humanCreateDto.getChildren_id()).mapToObj(a -> findById((long) a)).peek(a -> {
+                            if (a.getBirthdate() != null) {
+                                if (a.getBirthdate().before(birthdate)) {
+                                    throw new ConflictException("child cannot be elder than human");
+                                }
+                            }
+                        }
+                ).collect(Collectors.toList()))
+                .parents(Arrays.stream(humanCreateDto.getParents_id()).mapToObj(a -> findById((long) a)).peek(a -> {
+                    if (a.getBirthdate() != null) {
+                        if (a.getBirthdate().after(birthdate)) {
+                            throw new ConflictException("parent cannot be younger then human");
                         }
                     }
-            ).collect(Collectors.toList()))
-            .parents(Arrays.stream(humanCreateDto.getParents_id()).mapToObj(a -> findById((long) a)).peek(a -> {
-                if(a.getBirthdate().after(birthdate)){
-                    throw new ConflictException("parent cannot be younger then human");
-                }
-            }).collect(Collectors.toList()))
-            .gender(humanCreateDto.getGender())
-            .author(me)
-            .created(new Date())
-            .status(Status.ACTIVE)
-            .updated(new Date())
-            .build();
+                }).collect(Collectors.toList()))
+                .gender(humanCreateDto.getGender())
+                .author(me)
+                .created(new Date())
+                .status(Status.ACTIVE)
+                .updated(new Date())
+                .build();
         return humanRepository.save(human);
     }
 

@@ -69,9 +69,9 @@ public class BirthPlaceRestControllerV1 {
     }
 
     @PutMapping("")
-    public ResponseEntity<BirthplaceDto> changeBirthPlace(@Valid @RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
+    public ResponseEntity<BirthplaceDto> changeBirthplace(@Valid @RequestBody BirthplaceCreateDto birthplaceCreateDto, @RequestHeader(value = "Authorization") String bearerToken){
         if(birthplaceCreateDto.getId()==null){
-            log.info("in changeBirthPlace(). id is required");
+            log.info("in changeBirthplace(). id is required");
             throw new BadRequestException("id is required");
         }
         if(birthplaceCreateDto.getStatus()!=null || birthplaceCreateDto.getAuthor_id() != null){
