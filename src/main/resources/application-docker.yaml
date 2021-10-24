@@ -1,0 +1,62 @@
+#   POSTGRES_URL: jdbc:postgresql://localhost:5432/AG3D
+
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  datasource:
+    url: ${POSTGRES_URL}?currentSchema=family
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    show-sql: true
+    properties.hibernate.format_sql: true
+
+  servlet:
+    multipart:
+      maxFileSize: 50MB
+
+  liquibase:
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    change-log: classpath:liquibase/db.changelog-master.xml
+    url: ${POSTGRES_URL}
+    default-schema: family
+
+  application:
+    admin:
+      enabled: true
+
+jwt:
+  token:
+  secret: jwtappfamily
+  expired:  3600000
+
+database:
+  schema: family
+
+hibernate:
+  show_sql: true
+  use_sql_comments: true
+  format_sql: true
+
+#printing parameter values in order
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+
+path:
+  root: /Family/
+  photo: photos/
+
+test:
+  username: Testuser
+  password: 123
+  email: ag3d@mail.ru
+  phone: 79673310100

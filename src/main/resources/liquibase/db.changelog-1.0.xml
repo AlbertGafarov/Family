@@ -2,12 +2,6 @@
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-
-    <changeSet id="0.0.1" author="albert.gafarov">
-        <!-- схему придется содать заранее -->
-        <sqlFile path="liquibase/schema.sql"/>
-    </changeSet>
-
     <changeSet id="1.0.0" author="albert.gafarov">
         <createTable tableName="users">
             <column name="id" type="serial" >
@@ -455,5 +449,19 @@
         <addForeignKeyConstraint baseTableName="stories_humans" baseColumnNames="story_id"
                                  constraintName="stories_humans_stories" referencedTableName="stories"
                                  referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.40" author="albert.gafarov">
+        <insert tableName="users">
+            <column name="username" value="ADMIN"/>
+            <column name="phone" value="79000000000"/>
+            <column name="email" value="ADMIN@ADMIN.ADMIN"/>
+            <column name="password" value="$2a$10$c12HHdiPfe2DCGr/qV1ME.qQMWmNb9e1EgUj7Z5e7soIjP1Nzgc1a"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.41" author="albert.gafarov">
+        <insert tableName="user_roles">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="2"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>
