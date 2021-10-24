@@ -1271,14 +1271,14 @@ Response:
 
 Request:
 
-    DELETE /api/v1/admin/photos/{id} // id - идентификатор фамилии
+    DELETE /api/v1/admin/surnames/{id} // id - идентификатор фамилии
     Headers:
         Authorization: Bearer_{token}
 Response:
 
     Body:
     {
-        "message": "Photo with id {id} successfully deleted from database"
+        "message": "Surname with id {id} successfully deleted from database"
     }
 
 ## 8.13 Получить полную информацию о фото:
@@ -1469,24 +1469,24 @@ Response:
 
 Request:
 
-    DELETE /api/v1/admin/photos/{id} // id - идентификатор истории
+    DELETE /api/v1/admin/stories/{id} // id - идентификатор истории
     Headers:
         Authorization: Bearer_{token}
 Response:
 
     Body:
     {
-        "message": "Photo with id {id} successfully deleted from database"
+        "message": "Story with id {id} successfully deleted from database"
     }
 
-###Roles:
+### Roles:
 
 | ROLE | DESCRIPTION |
 |----- | ------------|
 | ROLE_ADMIN | admin |
 | ROLE_USER | user |
 
-###Status:
+### Status:
 
 |STATUS|DESCRIPTION|
 |----- | ----------|
